@@ -27,7 +27,7 @@ project "Sandbox"
 		"src",
 		"%{wks.location}/vendor",
 
-		"%{wks.location}/Outline/src",
+		"%{wks.location}/Core/src",
 
 		"%{Dependencies.GLFW.IncludeDir}",
 		"%{Dependencies.GLM.IncludeDir}",
@@ -40,7 +40,7 @@ project "Sandbox"
 
 	links
 	{
-		"VkOutline"
+		"Swift"
 	}
 
 	disablewarnings

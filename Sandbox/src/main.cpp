@@ -1,11 +1,11 @@
-#include <VkOutline/Core/Application.hpp>
-#include <VkOutline/Entrypoint.hpp>
+#include <Swift/Core/Application.hpp>
+#include <Swift/Entrypoint.hpp>
 
-class Sandbox : public VkOutline::Application
+class Sandbox : public Swift::Application
 {
 public:
-	Sandbox(const VkOutline::ApplicationSpecification& appInfo)
-		: VkOutline::Application(appInfo)
+	Sandbox(const Swift::ApplicationSpecification& appInfo)
+		: Swift::Application(appInfo)
 	{
 	}
 };
@@ -15,7 +15,7 @@ public:
 // ----------------------------------------------------------------
 //                    Set Application specs here...
 // ----------------------------------------------------------------
-VkOutline::Application* VkOutline::CreateApplication(int argc, char* argv[])
+Swift::Application* Swift::CreateApplication(int argc, char* argv[])
 {
 	ApplicationSpecification appInfo = {};
 	appInfo.WindowSpecs.Name = "Custom";

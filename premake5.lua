@@ -94,7 +94,7 @@ Dependencies =
 ------------------------------------------------------------------------------
 outputdir = "%{cfg.buildcfg}-" .. FirstToUpper("%{cfg.system}")
 
-workspace "Outline"
+workspace "SwiftRenderer"
 	architecture "x86_64"
 	startproject "Sandbox"
 
@@ -116,8 +116,8 @@ group "Dependencies"
 	include "vendor/vma"
 group ""
 
-group "Outline"
-	include "Outline"
+group "SwiftRenderer"
+	include "Core"
 group ""
 
 include "Sandbox"

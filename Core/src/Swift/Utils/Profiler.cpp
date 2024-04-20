@@ -1,7 +1,7 @@
 #include "swpch.h"
 #include "Profiler.hpp"
 
-#if !defined(APP_DIST) && APP_ENABLE_PROFILING
+#if !defined(APP_DIST) && APP_ENABLE_PROFILING && APP_PLATFORM_WINDOWS
 #if APP_MEM_PROFILING
 void* operator new(size_t size) 
 {

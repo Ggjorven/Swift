@@ -64,7 +64,6 @@ project "Swift"
 	links
 	{
 		"%{Dependencies.GLFW.LibName}",
-		"%{Dependencies.Tracy.LibName}",
 		"%{Dependencies.VMA.LibName}"
 	}
 
@@ -90,10 +89,28 @@ project "Swift"
 
 		links
 		{
+			"%{Dependencies.Tracy.LibName}",
 			"%{Dependencies.Vulkan.Windows.LibDir}" .. "%{Dependencies.Vulkan.Windows.LibName}"
 		}
 
-	-- TODO: Implement Linux
+	filter "system:linux"
+		systemversion "latest"
+		staticruntime "on"
+
+		defines
+		{
+			"APP_PLATFORM_LINUX"
+		}
+
+		includedirs
+		{
+			"%{Dependencies.Vulkan.Linux.IncludeDir}"
+		}
+
+		links
+		{
+			"%{Dependencies.Vulkan.Linux.LibDir}" .. "%{Dependencies.Vulkan.Linux.LibName}"
+		}
 
 	filter "configurations:Debug"
 		defines "APP_DEBUG"
@@ -123,6 +140,7 @@ project "Swift"
 		runtime "Release"
 		optimize "Full"
 
+	-- Windows
 	filter { "system:windows", "configurations:Debug" }
 		links
 		{
@@ -135,5 +153,19 @@ project "Swift"
 		{
 			"%{Dependencies.Vulkan.Windows.LibDir}" .. "%{Dependencies.ShaderC.LibName}",
 			"%{Dependencies.Assimp.Windows.LibDir}" .. "%{Dependencies.Assimp.Windows.LibName}"
+		}
 
+	-- Linux
+	filter { "system:linux", "configurations:Debug" }
+		links
+		{
+			"%{Dependencies.Vulkan.Linux.LibDir}" .. "%{Dependencies.ShaderC.DebugLibName}",
+			"%{Dependencies.Assimp.Linux.LibDir}" .. "%{Dependencies.Assimp.Linux.DebugLibName}"
+		}
+
+	filter { "system:windows", "configurations:Release or configurations:Dist" }
+		links
+		{
+			"%{Dependencies.Vulkan.Linux.LibDir}" .. "%{Dependencies.ShaderC.LibName}",
+			"%{Dependencies.Assimp.Linux.LibDir}" .. "%{Dependencies.Assimp.Linux.LibName}"
 		}

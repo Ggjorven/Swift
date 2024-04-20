@@ -1,5 +1,6 @@
 #pragma once
 
+#ifdef APP_PLATFORM_WINDOWS
 #include <tracy/Tracy.hpp>
 #include <tracy/TracyC.h>
 
@@ -25,4 +26,5 @@ void operator delete(void* ptr, size_t size) noexcept;
 #define APP_MARK_FRAME
 #define APP_PROFILE_SCOPE
 
+#endif
 #endif

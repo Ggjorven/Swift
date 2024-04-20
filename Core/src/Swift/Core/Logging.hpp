@@ -73,7 +73,7 @@ namespace Swift
 		APP_LOG_FATAL(__VA_ARGS__); \
 	} 
 	#else
-	#define APP_VERIFY(value ...)
+	#define APP_VERIFY(value, ...)
 	#endif
 
 	#ifdef APP_DEBUG

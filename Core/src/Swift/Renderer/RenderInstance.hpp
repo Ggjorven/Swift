@@ -18,6 +18,8 @@ namespace Swift
 	public:
 		RenderInstance() = default;
 		virtual ~RenderInstance() = default;
+
+		virtual void Init() = 0;
 		
 		virtual void BeginFrame() = 0;
 		virtual void EndFrame() = 0;

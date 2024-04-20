@@ -43,8 +43,6 @@ namespace Swift
 		inline bool IsMinimized() const { return m_Minimized; }
 
 	private:
-		void Init(const ApplicationSpecification& appInfo);
-
 		bool OnWindowClose(WindowCloseEvent& e);
 		bool OnWindowResize(WindowResizeEvent& e);
 
@@ -61,6 +59,7 @@ namespace Swift
 		static Application* s_Instance;
 
 	};
+
 
 
 	// Implemented by USER/CLIENT

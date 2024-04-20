@@ -3,7 +3,7 @@
 // To be defined by user.
 extern Swift::Application* Swift::CreateApplication(int argc, char* argv[]);
 
-#if !defined(LV_DIST) // Non Dist build on all Platforms
+#if !defined(APP_DIST) // Non Dist build on all Platforms
 
 int main(int argc, char* argv[])
 {

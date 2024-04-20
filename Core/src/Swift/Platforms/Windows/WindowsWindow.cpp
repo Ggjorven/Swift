@@ -7,8 +7,6 @@
 
 #include "Swift/Utils/Profiler.hpp"
 
-//#include "Swift/Renderer/Renderer.hpp"
-
 namespace Swift
 {
 
@@ -17,84 +15,23 @@ namespace Swift
 
 	static void SetupAPIWindowHints();
 
-	WindowsWindow::WindowsWindow()
+	WindowsWindow::WindowsWindow(const WindowSpecification& properties)
 	{
-	}
+		m_Data = properties;
 
-	WindowsWindow::~WindowsWindow()
-	{
-	}
-
-	void WindowsWindow::OnUpdate()
-	{
-		APP_PROFILE_SCOPE("PollEvents");
-		glfwPollEvents();
-	}
-
-	void WindowsWindow::OnRender()
-	{
-		APP_MARK_FRAME;
-	}
-
-	uint32_t WindowsWindow::GetPositionX() const
-	{
-		int xPos = 0, yPos = 0;
-		glfwGetWindowPos(m_Window, &xPos, &yPos);
-		return (uint32_t)xPos;
-	}
-
-	uint32_t WindowsWindow::GetPositionY() const
-	{
-		int xPos = 0, yPos = 0;
-		glfwGetWindowPos(m_Window, &xPos, &yPos);
-		return (uint32_t)yPos;
-	}
-
-	uint32_t WindowsWindow::GetMonitorWidth() const
-	{
-		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-		const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-		return mode->height;
-	}
-
-	uint32_t WindowsWindow::GetMonitorHeight() const
-	{
-		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-		const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-		return mode->width;
-	}
-
-	void WindowsWindow::SetVSync(bool enabled)
-	{
-		m_Data.Vsync = enabled;
-	}
-
-	void WindowsWindow::SetTitle(const std::string& title)
-	{
-		glfwSetWindowTitle(m_Window, title.c_str());
-	}
-	
-	bool WindowsWindow::Init(const WindowSpecification& properties)
-	{
 		if (!s_GLFWinitialized)
 		{
 			int succes = glfwInit();
 			if (!succes)
-			{
-				APP_LOG_ERROR("glfwInit() failed");
-				return true;
-			}
+				APP_LOG_ERROR("(GLFW) glfwInit() failed");
+
 			s_GLFWinitialized = true;
 			glfwSetErrorCallback(ErrorCallBack);
 		}
-		m_Data.Vsync = properties.VSync;
 
 		SetupAPIWindowHints();
 		m_Window = glfwCreateWindow((int)properties.Width, (int)properties.Height, properties.Name.c_str(), nullptr, nullptr);
 		s_Instances++;
-
-		//m_RenderingContext = RenderingContext::Create();
-		//m_RenderingContext->Init();
 
 		glfwSetWindowUserPointer(m_Window, &m_Data); //So we can access/get to the data in lambda functions
 		if (properties.CustomPos) glfwSetWindowPos(m_Window, properties.X, properties.Y);
@@ -105,7 +42,7 @@ namespace Swift
 			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 			data.Width = width;
 			data.Height = height;
-				
+
 			WindowResizeEvent event = WindowResizeEvent(width, height);
 			data.CallBack(event);
 		});
@@ -113,11 +50,10 @@ namespace Swift
 		glfwSetWindowCloseCallback(m_Window, [](GLFWwindow* window)
 		{
 			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
-				
+
 			WindowCloseEvent event = WindowCloseEvent();
 			data.CallBack(event);
 		});
-
 
 		glfwSetKeyCallback(m_Window, [](GLFWwindow* window, int key, int scancode, int action, int mods)
 		{
@@ -190,20 +126,64 @@ namespace Swift
 			MouseMovedEvent event = MouseMovedEvent((float)xPos, (float)yPos);
 			data.CallBack(event);
 		});
-
-
-		return false;
 	}
 
-	void WindowsWindow::Shutdown()
+	WindowsWindow::~WindowsWindow()
 	{
-		//m_RenderingContext->Destroy();
-
 		glfwDestroyWindow(m_Window);
 		s_Instances--;
 
 		if (s_Instances == 0)
 			glfwTerminate();
+	}
+
+	void WindowsWindow::OnUpdate()
+	{
+		APP_PROFILE_SCOPE("PollEvents");
+		glfwPollEvents();
+	}
+
+	void WindowsWindow::OnRender()
+	{
+		APP_MARK_FRAME;
+	}
+
+	uint32_t WindowsWindow::GetPositionX() const
+	{
+		int xPos = 0, yPos = 0;
+		glfwGetWindowPos(m_Window, &xPos, &yPos);
+		return (uint32_t)xPos;
+	}
+
+	uint32_t WindowsWindow::GetPositionY() const
+	{
+		int xPos = 0, yPos = 0;
+		glfwGetWindowPos(m_Window, &xPos, &yPos);
+		return (uint32_t)yPos;
+	}
+
+	uint32_t WindowsWindow::GetMonitorWidth() const
+	{
+		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+		const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+		return mode->height;
+	}
+
+	uint32_t WindowsWindow::GetMonitorHeight() const
+	{
+		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+		const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+		return mode->width;
+	}
+
+	void WindowsWindow::SetVSync(bool enabled)
+	{
+		m_Data.Vsync = enabled;
+	}
+
+	void WindowsWindow::SetTitle(const std::string& title)
+	{
+		glfwSetWindowTitle(m_Window, title.c_str());
 	}
 
 	void WindowsWindow::ErrorCallBack(int errorCode, const char* description)
@@ -213,18 +193,16 @@ namespace Swift
 
 	void SetupAPIWindowHints()
 	{
-		/*
-		switch (Renderer::GetAPI())
+		switch (RendererSpecification::API)
 		{
-		case RenderingAPI::Vulkan:
+		case RendererSpecification::RenderingAPI::Vulkan:
 			glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 			break;
 
 		default:
-			LV_LOG_ERROR("Invalid API selected.");
+			APP_LOG_ERROR("Invalid API selected.");
 			break;
 		}
-		*/
 	}
 
 }

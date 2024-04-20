@@ -16,6 +16,7 @@ namespace Swift
 	void Renderer::Init()
 	{
 		s_RenderInstance = RenderInstance::Create();
+		s_RenderInstance->Init();
 	}
 
 	bool Renderer::Initialized()

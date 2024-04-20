@@ -19,7 +19,6 @@ namespace Swift
 
 		virtual void OnUpdate(float deltaTime) {}
 		virtual void OnRender() {}
-		virtual void OnImGuiRender() {}
 		virtual void OnEvent(Event& e) {}
 
 		inline const std::string& GetName() { return m_DebugName; }

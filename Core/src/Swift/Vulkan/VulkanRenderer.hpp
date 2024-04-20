@@ -3,12 +3,16 @@
 #include <mutex>
 #include <vector>
 
+#include <vulkan/vulkan.h>
+
 #include "Swift/Core/Core.hpp"
 #include "Swift/Utils/Utils.hpp"
 
 #include "Swift/Renderer/RenderInstance.hpp"
 
-#include <vulkan/vulkan.h>
+#include "Swift/Vulkan/VulkanDevice.hpp"
+#include "Swift/Vulkan/VulkanPhysicalDevice.hpp"
+#include "Swift/Vulkan/VulkanSwapChain.hpp"
 
 namespace Swift
 {
@@ -27,6 +31,8 @@ namespace Swift
 	public:
 		VulkanRenderer();
 		virtual ~VulkanRenderer();
+
+		void Init() override;
 
 		void BeginFrame() override;
 		void EndFrame() override;
@@ -47,18 +53,18 @@ namespace Swift
 		inline VkInstance& GetVulkanInstance() { return m_VulkanInstance; }
 		inline VkSurfaceKHR& GetVulkanSurface() { return m_Surface; }
 
-		//inline Ref<VulkanDevice> GetLogicalDevice() { return m_Device; }
-		//inline Ref<VulkanPhysicalDevice> GetPhysicalDevice() { return m_PhysicalDevice; }
-		//inline Ref<VulkanSwapChain> GetSwapChain() { return m_SwapChain; }
+		inline Ref<VulkanDevice> GetLogicalDevice() { return m_Device; }
+		inline Ref<VulkanPhysicalDevice> GetPhysicalDevice() { return m_PhysicalDevice; }
+		inline Ref<VulkanSwapChain> GetSwapChain() { return m_SwapChain; }
 
 	private:
 		VkInstance m_VulkanInstance = VK_NULL_HANDLE;
 		VkDebugUtilsMessengerEXT m_DebugMessenger = VK_NULL_HANDLE;
 		VkSurfaceKHR m_Surface = VK_NULL_HANDLE;
 
-		//Ref<VulkanPhysicalDevice> m_PhysicalDevice = VK_NULL_HANDLE;
-		//Ref<VulkanDevice> m_Device = VK_NULL_HANDLE;
-		//Ref<VulkanSwapChain> m_SwapChain = VK_NULL_HANDLE;
+		Ref<VulkanPhysicalDevice> m_PhysicalDevice = VK_NULL_HANDLE;
+		Ref<VulkanDevice> m_Device = VK_NULL_HANDLE;
+		Ref<VulkanSwapChain> m_SwapChain = VK_NULL_HANDLE;
 
 	private:
 		Utils::Queue<RenderFunction> m_RenderQueue = { };

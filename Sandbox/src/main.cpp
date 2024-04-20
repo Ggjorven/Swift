@@ -1,12 +1,15 @@
 #include <Swift/Core/Application.hpp>
 #include <Swift/Entrypoint.hpp>
 
+#include "SandboxLayer.hpp"
+
 class Sandbox : public Swift::Application
 {
 public:
 	Sandbox(const Swift::ApplicationSpecification& appInfo)
 		: Swift::Application(appInfo)
 	{
+		AddLayer(new SandboxLayer());
 	}
 };
 

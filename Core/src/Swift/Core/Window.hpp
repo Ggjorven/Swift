@@ -64,9 +64,6 @@ namespace Swift
 		Window() = default;
 		virtual ~Window() = default;
 
-		virtual bool Init(const WindowSpecification& properties = WindowSpecification()) = 0; 
-		virtual void Shutdown() = 0;
-
 		virtual void SetEventCallBack(EventCallBackFunction func) = 0;
 
 		virtual void OnUpdate() = 0;
@@ -90,7 +87,7 @@ namespace Swift
 
 		virtual void* GetNativeWindow() const = 0;
 
-		static std::unique_ptr<Window> Create();
+		static std::unique_ptr<Window> Create(const WindowSpecification& properties = WindowSpecification());
 	};
 
 }

@@ -10,7 +10,7 @@ namespace Swift
 	class WindowsWindow : public Window
 	{
 	public:
-		WindowsWindow();
+		WindowsWindow(const WindowSpecification& properties);
 		virtual ~WindowsWindow();
 
 		void SetEventCallBack(EventCallBackFunction func) override { m_Data.CallBack = func; }
@@ -33,9 +33,6 @@ namespace Swift
 		void SetTitle(const std::string& title) override;
 
 		void* GetNativeWindow() const override { return (void*)m_Window; }
-
-		bool Init(const WindowSpecification& properties) override;
-		void Shutdown() override;
 
 	private:
 		static void ErrorCallBack(int errorCode, const char* description);

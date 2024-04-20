@@ -20,7 +20,14 @@ namespace Swift
 	{
 		s_Instance = this;
 	
-		Init(appInfo);
+		// Initialize
+		Input::Init();
+		Log::Init();
+
+		m_Window = Window::Create(appInfo.WindowSpecs);
+		m_Window->SetEventCallBack(LV_BIND_EVENT_FN(Application::OnEvent));
+
+		Renderer::Init();
 	}
 
 	Application::~Application()
@@ -36,7 +43,7 @@ namespace Swift
 		}
 
 		Renderer::Destroy();
-		m_Window->Shutdown();
+		m_Window.reset();
 	}
 
 	void Application::OnEvent(Event& e)
@@ -96,18 +103,6 @@ namespace Swift
 	void Application::AddOverlay(Layer* layer)
 	{
 		m_LayerStack.AddOverlay(layer);
-	}
-
-	void Application::Init(const ApplicationSpecification& appInfo)
-	{
-		Input::Init();
-		Log::Init();
-
-		m_Window = Window::Create();
-		m_Window->Init(appInfo.WindowSpecs);
-		m_Window->SetEventCallBack(LV_BIND_EVENT_FN(Application::OnEvent));
-
-		Renderer::Init();
 	}
 
 	bool Application::OnWindowClose(WindowCloseEvent& e)

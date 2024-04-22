@@ -4,7 +4,9 @@
 #include "Swift/Core/Logging.hpp"
 
 #include "Swift/Renderer/RenderInstance.hpp"
-//#include "Swift/Renderer/CommandBuffer.hpp"
+
+#include "Swift/Renderer/Buffers.hpp"
+#include "Swift/Renderer/CommandBuffer.hpp"
 
 namespace Swift
 {
@@ -54,12 +56,10 @@ namespace Swift
 		s_RenderInstance->Wait();
 	}
 
-	/*
-	void Renderer::DrawIndexed(Ref<RenderCommandBuffer> commandBuffer, Ref<IndexBuffer> indexBuffer)
+	void Renderer::DrawIndexed(Ref<CommandBuffer> commandBuffer, Ref<IndexBuffer> indexBuffer)
 	{
 		s_RenderInstance->DrawIndexed(commandBuffer, indexBuffer);
 	}
-	*/
 
 	void Renderer::OnResize(uint32_t width, uint32_t height)
 	{
@@ -74,6 +74,11 @@ namespace Swift
 	Utils::Queue<FreeFunction>& Renderer::GetFreeQueue()
 	{
 		return s_RenderInstance->GetFreeQueue();
+	}
+
+	uint32_t Renderer::GetCurrentFrame()
+	{
+		return s_RenderInstance->GetCurrentFrame();;
 	}
 
 	RenderInstance* Renderer::GetInstance()

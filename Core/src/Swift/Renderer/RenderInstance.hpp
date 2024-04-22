@@ -29,12 +29,13 @@ namespace Swift
 
 		virtual void Wait() = 0;
 
-		//virtual void DrawIndexed(Ref<CommandBuffer> commandBuffer, Ref<IndexBuffer> indexBuffer) = 0;
+		virtual void DrawIndexed(Ref<CommandBuffer> commandBuffer, Ref<IndexBuffer> indexBuffer) = 0;
 
 		virtual void OnResize(uint32_t width, uint32_t height) = 0;
 
 		virtual Utils::Queue<RenderFunction>& GetRenderQueue() = 0;
 		virtual Utils::Queue<FreeFunction>& GetFreeQueue() = 0;
+		virtual uint32_t GetCurrentFrame() const = 0;
 
 		static RenderInstance* Create();
 	};

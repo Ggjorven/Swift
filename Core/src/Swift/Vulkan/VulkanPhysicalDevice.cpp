@@ -47,7 +47,7 @@ namespace Swift
 
 	QueueFamilyIndices QueueFamilyIndices::Find(const VkPhysicalDevice& device)
 	{
-		QueueFamilyIndices indices;
+		QueueFamilyIndices indices = {};
 
 		uint32_t queueFamilyCount = 0;
 		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
@@ -64,6 +64,9 @@ namespace Swift
 
 			if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
 				indices.GraphicsFamily = i;
+
+			if (queueFamily.queueFlags & VK_QUEUE_COMPUTE_BIT)
+				indices.ComputeFamily = i;
 
 			VkBool32 presentSupport = false;
 			VkSurfaceKHR& surface = ((VulkanRenderer*)Renderer::GetInstance())->GetVulkanSurface();

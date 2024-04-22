@@ -53,20 +53,20 @@ Dependencies =
 	},
 	Assimp = 
 	{
+		IncludeDir = "%{wks.location}/vendor/assimp/include",
+
 		Windows = 
 		{
 			LibName = "assimp-vc143-mt",
 			DebugLibName = "assimp-vc143-mtd",
-			IncludeDir = "%{wks.location}/vendor/assimp/include",
 			LibDir = "%{wks.location}/vendor/assimp/bin/windows/",
 			DynamicLib = "%{Dependencies.Assimp.Windows.LibDir}" .. "assimp-vc143-mt.dll",
 			DebugDynamicLib = "%{Dependencies.Assimp.Windows.LibDir}" .. "assimp-vc143-mtd.dll",
 		},
 		Linux =  
 		{
-			LibName = "libassimp.so",
-			DebugDynamicLibName = "libassimp.so.5",
-			IncludeDir = "%{wks.location}/vendor/assimp/include",
+			LibName = "libassimp.so",				-- TODO: Check this out
+			DebugDynamicLibName = "libassimp.so.5",	-- TODO: Check this out
 			LibDir = "%{wks.location}/vendor/assimp/bin/linux",
 		}
 	},

@@ -7,7 +7,10 @@
 #include "Swift/Renderer/Renderer.hpp"
 
 #include "Swift/Vulkan/VulkanUtils.hpp"
+#include "Swift/Vulkan/VulkanBuffers.hpp"
+#include "Swift/Vulkan/VulkanRenderer.hpp"
 #include "Swift/Vulkan/VulkanTaskManager.hpp"
+#include "Swift/Vulkan/VulkanCommandBuffer.hpp"
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -55,6 +58,7 @@ namespace Swift
 	VulkanRenderer::~VulkanRenderer()
 	{
 		Wait();
+		m_ResourceFreeQueue.Execute();
 
 		m_SwapChain.reset();
 		VulkanAllocator::Destroy(); 
@@ -189,6 +193,11 @@ namespace Swift
 		if (Application::Get().IsMinimized())
 			return;
 
+		{
+			APP_PROFILE_SCOPE("RenderQueue");
+			m_RenderQueue.Execute();
+		}
+
 		m_SwapChain->EndFrame();
 	}
 
@@ -207,19 +216,18 @@ namespace Swift
 		vkDeviceWaitIdle(m_Device->GetVulkanDevice());
 	}
 
-	/*
-	void VulkanRenderer::DrawIndexed(Ref<RenderCommandBuffer> commandBuffer, Ref<IndexBuffer> indexBuffer)
+	void VulkanRenderer::DrawIndexed(Ref<CommandBuffer> commandBuffer, Ref<IndexBuffer> indexBuffer)
 	{
-		LV_PROFILE_SCOPE("VulkanRenderer::DrawIndexed");
-		s_RenderData->DrawCalls++;
+		APP_PROFILE_SCOPE("VulkanRenderer::DrawIndexed");
+		Renderer::GetRenderData().DrawCalls++;
 
-		auto cmdBuf = RefHelper::RefAs<VulkanRenderCommandBuffer>(commandBuffer);
-		vkCmdDrawIndexed(cmdBuf->GetVulkanCommandBuffer(), indexBuffer->GetCount(), 1, 0, 0, 0);
+		auto cmdBuf = RefHelper::RefAs<VulkanCommandBuffer>(commandBuffer);
+		vkCmdDrawIndexed(cmdBuf->GetVulkanCommandBuffer(m_SwapChain->GetCurrentFrame()), indexBuffer->GetCount(), 1, 0, 0, 0);
 	}
-	*/
 
 	void VulkanRenderer::OnResize(uint32_t width, uint32_t height)
 	{
+		m_SwapChain->OnResize(width, height, Application::Get().GetWindow().IsVSync());
 	}
 
 }

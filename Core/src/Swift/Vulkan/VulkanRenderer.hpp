@@ -42,12 +42,13 @@ namespace Swift
 
 		void Wait() override;
 
-		//void DrawIndexed(Ref<RenderCommandBuffer> commandBuffer, Ref<IndexBuffer> indexBuffer) override;
+		void DrawIndexed(Ref<CommandBuffer> commandBuffer, Ref<IndexBuffer> indexBuffer) override;
 
 		void OnResize(uint32_t width, uint32_t height) override;
 
 		inline Utils::Queue<RenderFunction>& GetRenderQueue() override { return m_RenderQueue; }
 		inline Utils::Queue<FreeFunction>& GetFreeQueue() override { return m_ResourceFreeQueue; }
+		inline uint32_t GetCurrentFrame() const override { return m_SwapChain->GetCurrentFrame(); }
 
 	public:
 		inline VkInstance& GetVulkanInstance() { return m_VulkanInstance; }

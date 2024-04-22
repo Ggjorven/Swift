@@ -15,12 +15,13 @@ namespace Swift
 	{
 	public:
 		std::optional<uint32_t> GraphicsFamily;
+		std::optional<uint32_t> ComputeFamily;
 		std::optional<uint32_t> PresentFamily;
 
 		static QueueFamilyIndices Find(const VkPhysicalDevice& device);
 
 	public:
-		inline bool IsComplete() const { return GraphicsFamily.has_value() && PresentFamily.has_value(); }
+		inline bool IsComplete() const { return GraphicsFamily.has_value() && ComputeFamily.has_value() && PresentFamily.has_value(); }
 	};
 
 	struct SwapChainSupportDetails

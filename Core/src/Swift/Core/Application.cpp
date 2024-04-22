@@ -25,7 +25,7 @@ namespace Swift
 		Log::Init();
 
 		m_Window = Window::Create(appInfo.WindowSpecs);
-		m_Window->SetEventCallBack(LV_BIND_EVENT_FN(Application::OnEvent));
+		m_Window->SetEventCallBack(APP_BIND_EVENT_FN(Application::OnEvent));
 
 		Renderer::Init();
 	}
@@ -50,8 +50,8 @@ namespace Swift
 	{
 		EventHandler handler(e);
 
-		handler.Handle<WindowCloseEvent>(LV_BIND_EVENT_FN(Application::OnWindowClose));
-		handler.Handle<WindowResizeEvent>(LV_BIND_EVENT_FN(Application::OnWindowResize));
+		handler.Handle<WindowCloseEvent>(APP_BIND_EVENT_FN(Application::OnWindowClose));
+		handler.Handle<WindowResizeEvent>(APP_BIND_EVENT_FN(Application::OnWindowResize));
 
 		for (auto it = m_LayerStack.rbegin(); it != m_LayerStack.rend(); ++it)
 		{

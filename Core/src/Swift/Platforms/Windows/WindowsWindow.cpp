@@ -7,6 +7,8 @@
 
 #include "Swift/Utils/Profiler.hpp"
 
+#include "Swift/Renderer/Renderer.hpp"
+
 namespace Swift
 {
 
@@ -17,7 +19,10 @@ namespace Swift
 
 	WindowsWindow::WindowsWindow(const WindowSpecification& properties)
 	{
-		m_Data = properties;
+		m_Data.Name = properties.Name;
+		m_Data.Width = properties.Width;
+		m_Data.Height = properties.Height;
+		m_Data.VSync = properties.VSync;
 
 		if (!s_GLFWinitialized)
 		{
@@ -178,7 +183,10 @@ namespace Swift
 
 	void WindowsWindow::SetVSync(bool enabled)
 	{
-		m_Data.Vsync = enabled;
+		m_Data.VSync = enabled;
+
+		// Note(Jorben): Resize recreates swapchain with new specs aka VSync
+		Renderer::OnResize(m_Data.Width, m_Data.Height);
 	}
 
 	void WindowsWindow::SetTitle(const std::string& title)

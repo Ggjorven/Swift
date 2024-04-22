@@ -66,7 +66,10 @@ namespace Swift
 
 			// Note(Jorben): Without these 2 lines there is a memory leak when validation layers are enabled.
 			if constexpr (s_Validation)
+			{
+				APP_PROFILE_SCOPE("QueueWaitIdle");
 				vkQueueWaitIdle(m_Device->GetGraphicsQueue());
+			}
 			
 			result = vkQueuePresentKHR(m_Device->GetPresentQueue(), &presentInfo);
 		}
@@ -149,7 +152,7 @@ namespace Swift
 		}
 
 		/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-		// SwapChain // TODO: Clean up this section
+		// SwapChain 
 		/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		SwapChainSupportDetails details = SwapChainSupportDetails::Query(physicalDevice);
 

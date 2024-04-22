@@ -39,22 +39,12 @@ namespace Swift
 		uint32_t Width;
 		uint32_t Height;
 
-		bool Vsync = false;
+		bool VSync = false;
 		EventCallBackFunction CallBack;
 
 		WindowData(std::string name = "Swift Window", uint32_t width = 1280u, uint32_t height = 720u)
 			: Name(name), Width(width), Height(height)
 		{
-		}
-
-		WindowData operator = (WindowSpecification const& properties)
-		{
-			WindowData newData;
-			newData.Name = properties.Name;
-			newData.Width = properties.Width;
-			newData.Height = properties.Height;
-			newData.Vsync = properties.VSync;
-			return newData;
 		}
 	};
 

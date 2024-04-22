@@ -17,18 +17,24 @@ namespace Swift
 	{
 	public:
 		static void AddSemaphore(VkSemaphore semaphore);
+		static void AddFrameSemaphore(VkSemaphore semaphore);
 		static void AddFence(VkFence fence);
 
 		// Every function below either clears the item from the list or the entire list
-		static VkSemaphore GetFirstSempahore();
-		static VkFence GetFirstFence();
+		static VkSemaphore& GetFirstSempahore();
+		static VkFence& GetFirstFence();
 
 		static std::vector<VkSemaphore>& GetSemaphores();
 		static std::vector<VkFence>& GetFences();
 
+		static void RemoveSemaphore(VkSemaphore semaphore);
+
 	private:
+		// TODO: Replace queues with vectors and then implement RemoveSemaphore() and then add waiting to a CommandBuffer
 		static std::mutex s_SemaphoreMutex;
 		static Dict<uint32_t, std::queue<VkSemaphore>> s_Semaphores;
+		static std::mutex s_FrameSemaphoreMutex;
+		static Dict<uint32_t, std::queue<VkSemaphore>> s_FrameSemaphores;
 
 		static std::mutex s_FenceMutex;
 		static Dict<uint32_t, std::queue<VkFence>> s_Fences;

@@ -28,7 +28,7 @@ namespace Swift
 		uint32_t GetMonitorHeight() const override;
 
 		void SetVSync(bool enabled) override;
-		bool IsVSync() const override { return m_Data.Vsync; }
+		bool IsVSync() const override { return m_Data.VSync; }
 
 		void SetTitle(const std::string& title) override;
 

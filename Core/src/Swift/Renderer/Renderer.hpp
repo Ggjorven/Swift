@@ -30,12 +30,13 @@ namespace Swift
 
 		static void Wait();
 
-		//static void DrawIndexed(Ref<CommandBuffer> commandBuffer, Ref<IndexBuffer> indexBuffer);
+		static void DrawIndexed(Ref<CommandBuffer> commandBuffer, Ref<IndexBuffer> indexBuffer);
 
 		static void OnResize(uint32_t width, uint32_t height);
 
 		static Utils::Queue<RenderFunction>& GetRenderQueue();
 		static Utils::Queue<FreeFunction>& GetFreeQueue();
+		static uint32_t GetCurrentFrame();
 		inline static RenderData& GetRenderData() { return s_Data; }
 
 		static RenderInstance* GetInstance();

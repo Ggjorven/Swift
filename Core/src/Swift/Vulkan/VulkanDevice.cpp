@@ -53,8 +53,9 @@ namespace Swift
 		if (vkCreateDevice(m_PhysicalDevice->GetVulkanPhysicalDevice(), &createInfo, nullptr, &m_LogicalDevice) != VK_SUCCESS)
 			APP_LOG_ERROR("Failed to create logical device!");
 
-		// Retrieve the graphics & present queue handle // TODO: Compute queue
+		// Retrieve the graphics/compute/present queue handle
 		vkGetDeviceQueue(m_LogicalDevice, indices.GraphicsFamily.value(), 0, &m_GraphicsQueue);
+		vkGetDeviceQueue(m_LogicalDevice, indices.ComputeFamily.value(), 0, &m_ComputeQueue);
 		vkGetDeviceQueue(m_LogicalDevice, indices.PresentFamily.value(), 0, &m_PresentQueue);
 	}
 

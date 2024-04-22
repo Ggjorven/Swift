@@ -10,7 +10,7 @@
 #include "Swift/Core/Input/KeyCodes.hpp"
 #include "Swift/Core/Input/MouseCodes.hpp"
 
-#define LV_BIND_EVENT_FN(fn) std::bind(&fn, this, std::placeholders::_1)
+#define APP_BIND_EVENT_FN(fn) std::bind(&fn, this, std::placeholders::_1)
 
 namespace Swift
 {

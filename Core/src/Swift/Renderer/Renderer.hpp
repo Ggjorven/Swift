@@ -30,6 +30,7 @@ namespace Swift
 
 		static void Wait();
 
+		static void Draw(Ref<CommandBuffer> commandBuffer, uint32_t verticeCount = 3);
 		static void DrawIndexed(Ref<CommandBuffer> commandBuffer, Ref<IndexBuffer> indexBuffer);
 
 		static void OnResize(uint32_t width, uint32_t height);

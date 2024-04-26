@@ -142,4 +142,19 @@ namespace Swift
 		return nullptr;
 	}
 
+	Ref<StorageBuffer> StorageBuffer::Create(size_t dataSize)
+	{
+		switch (RendererSpecification::API)
+		{
+		case RendererSpecification::RenderingAPI::Vulkan:
+			return RefHelper::Create<VulkanStorageBuffer>(dataSize);
+
+		default:
+			APP_LOG_ERROR("Invalid API selected.");
+			break;
+		}
+
+		return nullptr;
+	}
+
 }

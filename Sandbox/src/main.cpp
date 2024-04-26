@@ -21,7 +21,9 @@ public:
 Swift::Application* Swift::CreateApplication(int argc, char* argv[])
 {
 	ApplicationSpecification appInfo = {};
-	appInfo.WindowSpecs.Name = "SandboxApp";
+	appInfo.WindowSpecs.Name = "SandboxApp | Initializing...";
+	appInfo.WindowSpecs.Width = 1280;
+	appInfo.WindowSpecs.Height = 720;
 	appInfo.WindowSpecs.VSync = false;
 
 	return new Sandbox(appInfo);

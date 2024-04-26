@@ -29,12 +29,10 @@ private:
 	Ref<Pipeline> m_ComputePipeline = nullptr;
 	Ref<ComputeShader> m_ComputeShader = nullptr;
 	Ref<CommandBuffer> m_ComputeCommandBuffer = nullptr;
+	Ref<UniformBuffer> m_ComputeBuffer = nullptr;
 	
 	Ref<Image2D> m_Image = nullptr;
 
-	Ref<Pipeline> m_2DPipeline;
+	Ref<Pipeline> m_2DPipeline = nullptr;
 	Ref<RenderPass> m_2DRenderPass = nullptr;
-
-	Ref<VertexBuffer> m_2DVertexBuffer = nullptr;
-	Ref<IndexBuffer> m_2DIndexBuffer = nullptr;
 };

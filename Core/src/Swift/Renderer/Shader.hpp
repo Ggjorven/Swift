@@ -49,6 +49,22 @@ namespace Swift
 		static Ref<ShaderCompiler> Create();
 	};
 
+	class ShaderCacher
+	{
+	public:
+		ShaderCacher() = default;
+		virtual ~ShaderCacher() = default;
+
+		void Cache(const std::filesystem::path& path, const std::vector<char>& code);
+		std::vector<char> Retrieve(const std::filesystem::path& path);
+
+		bool CacheUpToDate(const std::filesystem::path& cache, const std::filesystem::path& shader);
+
+		std::vector<char> GetLatest(Ref<ShaderCompiler> compiler, const std::filesystem::path& cache, const std::filesystem::path& shader, ShaderStage stage);
+
+		static Ref<ShaderCacher> Create();
+	};
+
 	class Shader
 	{
 	public:

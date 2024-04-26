@@ -27,17 +27,17 @@ namespace Swift
 		static std::vector<VkSemaphore>& GetSemaphores();
 		static std::vector<VkFence>& GetFences();
 
+		static bool HasSemaphore(VkSemaphore semaphore);
 		static void RemoveSemaphore(VkSemaphore semaphore);
-
+		
 	private:
-		// TODO: Replace queues with vectors and then implement RemoveSemaphore() and then add waiting to a CommandBuffer
 		static std::mutex s_SemaphoreMutex;
-		static Dict<uint32_t, std::queue<VkSemaphore>> s_Semaphores;
+		static Dict<uint32_t, LinkedList<VkSemaphore>> s_Semaphores;
 		static std::mutex s_FrameSemaphoreMutex;
-		static Dict<uint32_t, std::queue<VkSemaphore>> s_FrameSemaphores;
+		static Dict<uint32_t, LinkedList<VkSemaphore>> s_FrameSemaphores;
 
 		static std::mutex s_FenceMutex;
-		static Dict<uint32_t, std::queue<VkFence>> s_Fences;
+		static Dict<uint32_t, LinkedList<VkFence>> s_Fences;
 	};
 
 }

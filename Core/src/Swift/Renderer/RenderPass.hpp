@@ -49,7 +49,7 @@ namespace Swift
 
 		virtual void Begin() = 0;
 		virtual void End() = 0;
-		virtual void Submit() = 0;
+		virtual void Submit(const std::vector<Ref<CommandBuffer>>& waitOn = { }) = 0;
 
 		virtual void Resize(uint32_t width, uint32_t height) = 0;
 

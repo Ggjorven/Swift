@@ -121,10 +121,9 @@ namespace Swift
 
 	void VulkanComputeShader::Dispatch(Ref<CommandBuffer> commandBuffer, uint32_t width, uint32_t height, uint32_t depth)
 	{
-		uint32_t frame = ((VulkanRenderer*)Renderer::GetInstance())->GetSwapChain()->GetCurrentFrame();
 		auto vkCommand = RefHelper::RefAs<VulkanCommandBuffer>(commandBuffer);
 
-		vkCmdDispatch(vkCommand->GetVulkanCommandBuffer(frame), width, height, depth);
+		vkCmdDispatch(vkCommand->GetVulkanCommandBuffer(Renderer::GetCurrentFrame()), width, height, depth);
 	}
 
 }

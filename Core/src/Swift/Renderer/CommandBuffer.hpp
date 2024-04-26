@@ -37,7 +37,7 @@ namespace Swift
 
 		virtual void Begin() = 0;
 		virtual void End() = 0;
-		virtual void Submit(Queue queue = Queue::Graphics) = 0;
+		virtual void Submit(Queue queue = Queue::Graphics, const std::vector<Ref<CommandBuffer>>& waitOn = { }) = 0;
 
 		static Ref<CommandBuffer> Create(CommandBufferSpecification specs = {});
 	};

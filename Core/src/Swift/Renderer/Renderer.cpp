@@ -56,6 +56,11 @@ namespace Swift
 		s_RenderInstance->Wait();
 	}
 
+	void Renderer::Draw(Ref<CommandBuffer> commandBuffer, uint32_t verticeCount)
+	{
+		s_RenderInstance->Draw(commandBuffer, verticeCount);
+	}
+
 	void Renderer::DrawIndexed(Ref<CommandBuffer> commandBuffer, Ref<IndexBuffer> indexBuffer)
 	{
 		s_RenderInstance->DrawIndexed(commandBuffer, indexBuffer);

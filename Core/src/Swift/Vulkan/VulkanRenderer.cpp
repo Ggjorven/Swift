@@ -216,6 +216,15 @@ namespace Swift
 		vkDeviceWaitIdle(m_Device->GetVulkanDevice());
 	}
 
+	void VulkanRenderer::Draw(Ref<CommandBuffer> commandBuffer, uint32_t verticeCount)
+	{
+		APP_PROFILE_SCOPE("VulkanRenderer::Draw");
+		Renderer::GetRenderData().DrawCalls++;
+
+		auto cmdBuf = RefHelper::RefAs<VulkanCommandBuffer>(commandBuffer);
+		vkCmdDraw(cmdBuf->GetVulkanCommandBuffer(m_SwapChain->GetCurrentFrame()), verticeCount, 1, 0, 0);
+	}
+
 	void VulkanRenderer::DrawIndexed(Ref<CommandBuffer> commandBuffer, Ref<IndexBuffer> indexBuffer)
 	{
 		APP_PROFILE_SCOPE("VulkanRenderer::DrawIndexed");

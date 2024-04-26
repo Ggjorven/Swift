@@ -90,6 +90,7 @@ project "Swift"
 		links
 		{
 			"%{Dependencies.Tracy.LibName}",
+			"%{Dependencies.Vulkan.Windows.LibDir}" .. "%{Dependencies.ShaderC.LibName}",
 			"%{Dependencies.Vulkan.Windows.LibDir}" .. "%{Dependencies.Vulkan.Windows.LibName}"
 		}
 
@@ -109,7 +110,8 @@ project "Swift"
 
 		links
 		{
-			"%{Dependencies.Vulkan.Linux.LibDir}" .. "%{Dependencies.Vulkan.Linux.LibName}"
+			"%{Dependencies.Vulkan.Linux.LibDir}" .. "%{Dependencies.Vulkan.Linux.LibName}",
+			"%{Dependencies.Vulkan.Linux.LibDir}" .. "%{Dependencies.ShaderC.LibName}"
 		}
 
 	filter "configurations:Debug"
@@ -144,14 +146,12 @@ project "Swift"
 	filter { "system:windows", "configurations:Debug" }
 		links
 		{
-			"%{Dependencies.Vulkan.Windows.LibDir}" .. "%{Dependencies.ShaderC.DebugLibName}",
 			"%{Dependencies.Assimp.Windows.LibDir}" .. "%{Dependencies.Assimp.Windows.DebugLibName}"
 		}
 
 	filter { "system:windows", "configurations:Release or configurations:Dist" }
 		links
 		{
-			"%{Dependencies.Vulkan.Windows.LibDir}" .. "%{Dependencies.ShaderC.LibName}",
 			"%{Dependencies.Assimp.Windows.LibDir}" .. "%{Dependencies.Assimp.Windows.LibName}"
 		}
 
@@ -159,13 +159,11 @@ project "Swift"
 	filter { "system:linux", "configurations:Debug" }
 		links
 		{
-			"%{Dependencies.Vulkan.Linux.LibDir}" .. "%{Dependencies.ShaderC.DebugLibName}",
 			"%{Dependencies.Assimp.Linux.LibDir}" .. "%{Dependencies.Assimp.Linux.DebugLibName}"
 		}
 
-	filter { "system:windows", "configurations:Release or configurations:Dist" }
+	filter { "system:linux", "configurations:Release or configurations:Dist" }
 		links
 		{
-			"%{Dependencies.Vulkan.Linux.LibDir}" .. "%{Dependencies.ShaderC.LibName}",
 			"%{Dependencies.Assimp.Linux.LibDir}" .. "%{Dependencies.Assimp.Linux.LibName}"
 		}

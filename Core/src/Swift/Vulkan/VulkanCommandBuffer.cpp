@@ -18,7 +18,10 @@ namespace Swift
 	{
 		// Check if specs are set properly
 		if (!(m_Specification.Usage & CommandBufferUsage::Sequence) && !(m_Specification.Usage & CommandBufferUsage::Parallel))
+		{
 			APP_ASSERT(false, "No proper flags set.");
+			return;
+		}
 
 		auto renderer = (VulkanRenderer*)Renderer::GetInstance();
 		auto device = renderer->GetLogicalDevice()->GetVulkanDevice();
@@ -81,7 +84,7 @@ namespace Swift
 	{
 		auto renderer = (VulkanRenderer*)Renderer::GetInstance();
 		auto device = renderer->GetLogicalDevice()->GetVulkanDevice();
-		uint32_t currentFrame = renderer->GetSwapChain()->GetCurrentFrame();
+		uint32_t currentFrame = Renderer::GetCurrentFrame();
 		VkCommandBuffer commandBuffer = m_CommandBuffers[currentFrame];
 
 		vkResetFences(device, 1, &m_InFlightFences[currentFrame]);
@@ -98,42 +101,48 @@ namespace Swift
 
 	void VulkanCommandBuffer::End()
 	{
-		auto renderer = (VulkanRenderer*)Renderer::GetInstance();
-		uint32_t currentFrame = renderer->GetSwapChain()->GetCurrentFrame();
-		VkCommandBuffer commandBuffer = m_CommandBuffers[currentFrame];
+		APP_PROFILE_SCOPE("VulkanCommandBuffer::End::End");
 
-		{
-			APP_PROFILE_SCOPE("VulkanCommandBuffer::End::End");
-			if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
-				APP_LOG_ERROR("Failed to record command buffer!");
-		}
+		if (vkEndCommandBuffer(m_CommandBuffers[Renderer::GetCurrentFrame()]) != VK_SUCCESS)
+			APP_LOG_ERROR("Failed to record command buffer!");
 	}
 
-	void VulkanCommandBuffer::Submit(Queue queue)
+	void VulkanCommandBuffer::Submit(Queue queue, const std::vector<Ref<CommandBuffer>>& waitOn)
 	{
 		auto renderer = (VulkanRenderer*)Renderer::GetInstance();
 		VkDevice device = renderer->GetLogicalDevice()->GetVulkanDevice();
 
-		uint32_t currentFrame = renderer->GetSwapChain()->GetCurrentFrame();
+		uint32_t currentFrame = Renderer::GetCurrentFrame();
 		VkCommandBuffer commandBuffer = m_CommandBuffers[currentFrame];
-
-		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 
 		VkSubmitInfo submitInfo = {};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-		if (m_Specification.Usage & CommandBufferUsage::Sequence)
+		std::vector<VkSemaphore> semaphores = { };
+
+		for (auto& cmd : waitOn)
 		{
-			submitInfo.waitSemaphoreCount = 1;
-			submitInfo.pWaitSemaphores = &VulkanTaskManager::GetFirstSempahore();
-		}
-		if (m_Specification.Usage & CommandBufferUsage::Parallel)
-		{
-			submitInfo.waitSemaphoreCount = 0;
-			submitInfo.pWaitSemaphores = nullptr;
+			auto vkCmd = RefHelper::RefAs<VulkanCommandBuffer>(cmd);
+			auto semaphore = vkCmd->GetRenderFinishedSemaphore(currentFrame);
+
+			semaphores.push_back(semaphore);
+			if (VulkanTaskManager::HasSemaphore(semaphore))
+				VulkanTaskManager::RemoveSemaphore(semaphore);
 		}
 
-		submitInfo.pWaitDstStageMask = waitStages;
+		if (m_Specification.Usage & CommandBufferUsage::Sequence)
+		{
+			// Check if it's not nullptr
+			if (VulkanTaskManager::GetFirstSempahore())
+				semaphores.push_back(VulkanTaskManager::GetFirstSempahore());
+		}
+
+		std::vector<VkPipelineStageFlags> waitStages(semaphores.size(), VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+
+		submitInfo.waitSemaphoreCount = (uint32_t)semaphores.size();
+		submitInfo.pWaitSemaphores = semaphores.data();
+		submitInfo.pWaitDstStageMask = waitStages.data();
+
 		submitInfo.commandBufferCount = 1;
 		submitInfo.pCommandBuffers = &commandBuffer;
 		submitInfo.signalSemaphoreCount = 1;

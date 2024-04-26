@@ -51,10 +51,9 @@ namespace Swift
 	void VulkanVertexBuffer::Bind(Ref<CommandBuffer> commandBuffer)
 	{
 		auto cmdBuf = RefHelper::RefAs<VulkanCommandBuffer>(commandBuffer);
-		uint32_t frame = ((VulkanRenderer*)Renderer::GetInstance())->GetSwapChain()->GetCurrentFrame();
-
+		
 		VkDeviceSize offsets[] = { 0 };
-		vkCmdBindVertexBuffers(cmdBuf->GetVulkanCommandBuffer(frame), 0, 1, &m_Buffer, offsets);
+		vkCmdBindVertexBuffers(cmdBuf->GetVulkanCommandBuffer(Renderer::GetCurrentFrame()), 0, 1, &m_Buffer, offsets);
 	}
 
 
@@ -97,9 +96,8 @@ namespace Swift
 	void VulkanIndexBuffer::Bind(Ref<CommandBuffer> commandBuffer) const
 	{
 		auto cmdBuf = RefHelper::RefAs<VulkanCommandBuffer>(commandBuffer);
-		uint32_t frame = ((VulkanRenderer*)Renderer::GetInstance())->GetSwapChain()->GetCurrentFrame();
 
-		vkCmdBindIndexBuffer(cmdBuf->GetVulkanCommandBuffer(frame), m_Buffer, 0, VK_INDEX_TYPE_UINT32);
+		vkCmdBindIndexBuffer(cmdBuf->GetVulkanCommandBuffer(Renderer::GetCurrentFrame()), m_Buffer, 0, VK_INDEX_TYPE_UINT32);
 	}
 
 
@@ -313,4 +311,80 @@ namespace Swift
 			vkUpdateDescriptorSets(((VulkanRenderer*)Renderer::GetInstance())->GetLogicalDevice()->GetVulkanDevice(), 1, &descriptorWrite, 0, nullptr);
 		}
 	}
+
+
+	VulkanStorageBuffer::VulkanStorageBuffer(size_t dataSize)
+		: m_Size(dataSize)
+	{
+		uint32_t framesInFlight = (uint32_t)RendererSpecification::BufferCount;
+		m_Buffers.resize((size_t)framesInFlight);
+		m_Allocations.resize((size_t)framesInFlight);
+
+		VulkanAllocator allocator = {};
+		for (size_t i = 0; i < framesInFlight; i++)
+			m_Allocations[i] = allocator.AllocateBuffer((VkDeviceSize)dataSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU, m_Buffers[i]);
+	}
+
+	VulkanStorageBuffer::~VulkanStorageBuffer()
+	{
+		auto buffers = m_Buffers;
+		auto allocations = m_Allocations;
+
+		Renderer::SubmitFree([buffers, allocations]()
+		{
+			for (size_t i = 0; i < (size_t)RendererSpecification::BufferCount; i++)
+			{
+				VulkanAllocator allocator = {};
+
+				if (buffers[i] != VK_NULL_HANDLE)
+					allocator.DestroyBuffer(buffers[i], allocations[i]);
+			}
+		});
+	}
+
+	void VulkanStorageBuffer::SetData(void* data, size_t size)
+	{
+		APP_PROFILE_SCOPE("VulkanStorageBuffer::SetData");
+
+		if (size > m_Size)
+		{
+			APP_ASSERT(false, "Data exceeds buffer size in SetData()");
+			return;
+		}
+
+		for (size_t i = 0; i < (size_t)RendererSpecification::BufferCount; i++)
+		{
+			void* mappedMemory = nullptr;
+			VulkanAllocator::MapMemory(m_Allocations[i], mappedMemory);
+			memcpy(mappedMemory, data, size);
+			VulkanAllocator::UnMapMemory(m_Allocations[i]);
+		}
+	}
+
+	void VulkanStorageBuffer::Upload(Ref<DescriptorSet> set, Descriptor element)
+	{
+		APP_PROFILE_SCOPE("VulkanStorageBuffer::Upload");
+
+		auto vkSet = RefHelper::RefAs<VulkanDescriptorSet>(set);
+
+		for (size_t i = 0; i < (size_t)RendererSpecification::BufferCount; i++)
+		{
+			VkDescriptorBufferInfo bufferInfo = {};
+			bufferInfo.buffer = m_Buffers[i];
+			bufferInfo.offset = 0;
+			bufferInfo.range = m_Size;
+
+			VkWriteDescriptorSet descriptorWrite = {};
+			descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			descriptorWrite.dstSet = vkSet->GetVulkanSet((uint32_t)i);
+			descriptorWrite.dstBinding = element.Binding;
+			descriptorWrite.dstArrayElement = 0;
+			descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+			descriptorWrite.descriptorCount = element.Count;
+			descriptorWrite.pBufferInfo = &bufferInfo;
+
+			vkUpdateDescriptorSets(((VulkanRenderer*)Renderer::GetInstance())->GetLogicalDevice()->GetVulkanDevice(), 1, &descriptorWrite, 0, nullptr);
+		}
+	}
+
 }

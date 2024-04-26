@@ -53,7 +53,7 @@ namespace Swift
         renderPassInfo.clearValueCount = (uint32_t)clearValues.size();
         renderPassInfo.pClearValues = clearValues.data();
 
-        vkCmdBeginRenderPass(m_CommandBuffer->GetVulkanCommandBuffer(renderer->GetSwapChain()->GetCurrentFrame()), &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdBeginRenderPass(m_CommandBuffer->GetVulkanCommandBuffer(Renderer::GetCurrentFrame()), &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
         VkViewport viewport = {};
         viewport.x = 0.0f;
@@ -62,25 +62,25 @@ namespace Swift
         viewport.height = (float)extent.height;
         viewport.minDepth = 0.0f;
         viewport.maxDepth = 1.0f;
-        vkCmdSetViewport(m_CommandBuffer->GetVulkanCommandBuffer(renderer->GetSwapChain()->GetCurrentFrame()), 0, 1, &viewport);
+        vkCmdSetViewport(m_CommandBuffer->GetVulkanCommandBuffer(Renderer::GetCurrentFrame()), 0, 1, &viewport);
 
         VkRect2D scissor = {};
         scissor.offset = { 0, 0 };
         scissor.extent = extent;
-        vkCmdSetScissor(m_CommandBuffer->GetVulkanCommandBuffer(renderer->GetSwapChain()->GetCurrentFrame()), 0, 1, &scissor);
+        vkCmdSetScissor(m_CommandBuffer->GetVulkanCommandBuffer(Renderer::GetCurrentFrame()), 0, 1, &scissor);
     }
 
     void VulkanRenderPass::End()
     {
         auto renderer = (VulkanRenderer*)Renderer::GetInstance();
-        vkCmdEndRenderPass(m_CommandBuffer->GetVulkanCommandBuffer(renderer->GetSwapChain()->GetCurrentFrame()));
+        vkCmdEndRenderPass(m_CommandBuffer->GetVulkanCommandBuffer(Renderer::GetCurrentFrame()));
 
         m_CommandBuffer->End();
     }
 
-    void VulkanRenderPass::Submit()
+    void VulkanRenderPass::Submit(const std::vector<Ref<CommandBuffer>>& waitOn)
     {
-        m_CommandBuffer->Submit(Queue::Graphics);
+        m_CommandBuffer->Submit(Queue::Graphics, waitOn);
     }
 
     void VulkanRenderPass::Resize(uint32_t width, uint32_t height)

@@ -42,6 +42,7 @@ namespace Swift
 
 		void Wait() override;
 
+		void Draw(Ref<CommandBuffer> commandBuffer, uint32_t verticeCount) override;
 		void DrawIndexed(Ref<CommandBuffer> commandBuffer, Ref<IndexBuffer> indexBuffer) override;
 
 		void OnResize(uint32_t width, uint32_t height) override;

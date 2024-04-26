@@ -22,7 +22,7 @@ namespace Swift
 
 		if (!file.is_open() || !file.good())
 		{
-			APP_LOG_ERROR("Failed to open file: '{0}'", path.string());
+			APP_ASSERT(false, "Failed to open file: '{0}'", path.string());
 			return {}; // Return an empty string indicating failure
 		}
 
@@ -37,7 +37,10 @@ namespace Swift
 		std::ifstream file(path, std::ios::ate | std::ios::binary);
 
 		if (!file.is_open() || !file.good())
-			APP_LOG_ERROR("Failed to open file!");
+		{
+			APP_ASSERT(false, "Failed to open file '{0}'", path.string());
+			return {};
+		}
 
 		size_t fileSize = (size_t)file.tellg();
 		std::vector<char> buffer(fileSize);
@@ -62,6 +65,55 @@ namespace Swift
 		}
 
 		return nullptr;
+	}
+
+	void ShaderCacher::Cache(const std::filesystem::path& path, const std::vector<char>& code)
+	{
+		std::ofstream file(path, std::ios::binary);
+
+		if (!file.is_open() || !file.good())
+		{
+			APP_ASSERT(false, "Failed to open '{0}'", path.string());
+			return;
+		}
+
+		file.write(code.data(), code.size());
+
+		file.close();
+	}
+
+	std::vector<char> ShaderCacher::Retrieve(const std::filesystem::path& path)
+	{
+		return ShaderSpecification::ReadSPIRVFile(path);
+	}
+
+	bool ShaderCacher::CacheUpToDate(const std::filesystem::path& cache, const std::filesystem::path& shader)
+	{
+		if (!std::filesystem::exists(cache) || !std::filesystem::exists(shader))
+		{
+			APP_LOG_WARN("Failed to check if cache is up to date since file was invalid or doesn't exist yet.");
+			return false;
+		}
+
+		auto cacheTime = std::filesystem::last_write_time(cache);
+		auto shaderTime = std::filesystem::last_write_time(shader);
+
+		return cacheTime >= shaderTime;
+	}
+
+	std::vector<char> ShaderCacher::GetLatest(Ref<ShaderCompiler> compiler, const std::filesystem::path& cache, const std::filesystem::path& shader, ShaderStage stage)
+	{
+		if (CacheUpToDate(cache, shader))
+			return Retrieve(cache);
+
+		auto result = compiler->Compile(ShaderSpecification::ReadGLSLFile(shader), stage);
+		Cache(cache, result);
+		return result;
+	}
+
+	Ref<ShaderCacher> ShaderCacher::Create()
+	{
+		return RefHelper::Create<ShaderCacher>();
 	}
 
 	Ref<Shader> Shader::Create(ShaderSpecification specs)

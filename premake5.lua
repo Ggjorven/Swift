@@ -31,8 +31,7 @@ Dependencies =
 	},
 	ShaderC = 
 	{
-		LibName = "shaderc_shared",
-		DebugLibName = "shaderc_sharedd"
+		LibName = "shaderc_shared"
 	},
 	VMA = 
 	{
@@ -67,7 +66,7 @@ Dependencies =
 		{
 			LibName = "libassimp.so",				-- TODO: Check this out
 			DebugDynamicLibName = "libassimp.so.5",	-- TODO: Check this out
-			LibDir = "%{wks.location}/vendor/assimp/bin/linux",
+			LibDir = "%{wks.location}/vendor/assimp/bin/linux/",
 		}
 	},
 

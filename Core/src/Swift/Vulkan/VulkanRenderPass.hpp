@@ -23,7 +23,7 @@ namespace Swift
 
 		void Begin() override;
 		void End() override;
-		void Submit() override;
+		void Submit(const std::vector<Ref<CommandBuffer>>& waitOn) override;
 
 		void Resize(uint32_t width, uint32_t height) override;
 

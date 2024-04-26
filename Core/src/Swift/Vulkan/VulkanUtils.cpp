@@ -210,7 +210,7 @@ namespace Swift
 		samplerInfo.maxLod = (float)mipLevels;
 		samplerInfo.mipLodBias = 0.0f; // Optional
 
-		VkSampler sampler;
+		VkSampler sampler = VK_NULL_HANDLE;
 		if (vkCreateSampler(renderer->GetLogicalDevice()->GetVulkanDevice(), &samplerInfo, nullptr, &sampler) != VK_SUCCESS)
 			APP_LOG_ERROR("Failed to create texture sampler!");
 
@@ -332,12 +332,12 @@ namespace Swift
 			barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
 			barrier.dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
 
-			sourceStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT; // Source stage where shader read operations occur
-			destinationStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT; // Destination stage where the image can be accessed for writing
+			sourceStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+			destinationStage = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
 		}
 		else if (oldLayout == VK_IMAGE_LAYOUT_GENERAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
 		{
-			barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT; 
+			barrier.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
 			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
 			sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT; 

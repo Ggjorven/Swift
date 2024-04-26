@@ -45,9 +45,8 @@ namespace Swift
 	void VulkanPipeline::Use(Ref<CommandBuffer> commandBuffer, PipelineBindPoint bindPoint)
 	{
 		auto cmdBuf = RefHelper::RefAs<VulkanCommandBuffer>(commandBuffer);
-		uint32_t currentFrame = ((VulkanRenderer*)Renderer::GetInstance())->GetSwapChain()->GetCurrentFrame();
 
-		vkCmdBindPipeline(cmdBuf->GetVulkanCommandBuffer(currentFrame), PipelineBindPointToVulkanBindPoint(bindPoint), m_GraphicsPipeline);
+		vkCmdBindPipeline(cmdBuf->GetVulkanCommandBuffer(Renderer::GetCurrentFrame()), PipelineBindPointToVulkanBindPoint(bindPoint), m_GraphicsPipeline);
 	}
 
 	void VulkanPipeline::CreateGraphicsPipeline()
@@ -84,10 +83,20 @@ namespace Swift
 
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
 		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-		vertexInputInfo.vertexBindingDescriptionCount = 1;
-		vertexInputInfo.vertexAttributeDescriptionCount = (uint32_t)attributeDescriptions.size();
-		vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
-		vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
+		if (!m_Specification.Bufferlayout.GetElements().empty())
+		{
+			vertexInputInfo.vertexBindingDescriptionCount = 1;
+			vertexInputInfo.vertexAttributeDescriptionCount = (uint32_t)attributeDescriptions.size();
+			vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
+			vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
+		}
+		else
+		{
+			vertexInputInfo.vertexBindingDescriptionCount = 0;
+			vertexInputInfo.vertexAttributeDescriptionCount = 0;
+			vertexInputInfo.pVertexAttributeDescriptions = nullptr;
+			vertexInputInfo.pVertexBindingDescriptions = nullptr;
+		}
 
 		VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
 		inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;

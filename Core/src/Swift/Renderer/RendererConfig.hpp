@@ -13,13 +13,13 @@ namespace Swift
 	struct RendererSpecification
 	{
 	public:
-		enum class RenderingAPI
+		enum class RenderingAPI : uint8_t
 		{
 			None = 0, Vulkan
 		};
-		enum class BufferMode
+		enum class BufferMode : uint8_t
 		{
-			None = 0, Double = 2, Triple = 3
+			None = 0, Single = 1, Double = 2, Triple = 3
 		};
 	public:
 		inline static constexpr const RenderingAPI API = RenderingAPI::Vulkan;

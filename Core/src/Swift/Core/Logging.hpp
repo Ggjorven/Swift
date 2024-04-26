@@ -82,6 +82,11 @@ namespace Swift
 		APP_LOG_FATAL(__VA_ARGS__); \
 		__debugbreak(); \
 	}
+	#elif defined(APP_RELEASE)
+	#define APP_ASSERT(value, ...) if (!value) \
+	{ \
+		APP_LOG_FATAL(__VA_ARGS__); \
+	}
 	#else
 	#define APP_ASSERT(value, ...)
 	#endif

@@ -88,4 +88,21 @@ namespace Swift
 		std::vector<std::pair<void*, size_t>> m_IndexedData = { };
 	};
 
+	class VulkanStorageBuffer : public StorageBuffer
+	{
+	public:
+		VulkanStorageBuffer(size_t dataSize);
+		virtual ~VulkanStorageBuffer();
+
+		void SetData(void* data, size_t size) override;
+
+		void Upload(Ref<DescriptorSet> set, Descriptor element) override;
+
+	private:
+		std::vector<VkBuffer> m_Buffers = { };
+		std::vector<VmaAllocation> m_Allocations = { };
+
+		size_t m_Size = 0;
+	};
+
 }

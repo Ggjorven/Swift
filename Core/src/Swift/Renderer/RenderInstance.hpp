@@ -29,6 +29,7 @@ namespace Swift
 
 		virtual void Wait() = 0;
 
+		virtual void Draw(Ref<CommandBuffer> commandBuffer, uint32_t verticeCount) = 0;
 		virtual void DrawIndexed(Ref<CommandBuffer> commandBuffer, Ref<IndexBuffer> indexBuffer) = 0;
 
 		virtual void OnResize(uint32_t width, uint32_t height) = 0;

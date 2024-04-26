@@ -20,7 +20,7 @@ namespace Swift
 
 		void Begin() override;
 		void End() override;
-		void Submit(Queue queue) override;
+		void Submit(Queue queue, const std::vector<Ref<CommandBuffer>>& waitOn) override;
 
 		inline VkSemaphore GetRenderFinishedSemaphore(uint32_t index) { return m_RenderFinishedSemaphores[index]; }
 		inline VkFence GetInFlightFence(uint32_t index) { return m_InFlightFences[index]; }

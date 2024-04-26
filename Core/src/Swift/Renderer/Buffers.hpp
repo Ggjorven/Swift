@@ -118,6 +118,17 @@ namespace Swift
 		static Ref<DynamicUniformBuffer> Create(uint32_t elements, size_t sizeOfOneElement);
 	};
 
-	// TODO: Storage buffer class
+	class StorageBuffer
+	{
+	public:
+		StorageBuffer() = default;
+		virtual ~StorageBuffer() = default;
+
+		virtual void SetData(void* data, size_t size) = 0;
+
+		virtual void Upload(Ref<DescriptorSet> set, Descriptor element) = 0;
+
+		static Ref<StorageBuffer> Create(size_t dataSize);
+	};
 
 }

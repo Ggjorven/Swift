@@ -229,7 +229,7 @@ namespace Swift
         SortedDict(const SortedDict<Key, Value>& other) = default;
         virtual ~SortedDict() = default;
 
-        Value& operator [] (const Key& key)
+        inline Value& operator [] (const Key& key)
         {
             auto it = m_Indices.find(key);
             if (it == m_Indices.end())
@@ -240,7 +240,7 @@ namespace Swift
             return m_Items[m_Indices[key]].second;
         }
 
-        void insert(const Key& key, const Value& value)
+        inline void insert(const Key& key, const Value& value)
         {
             if (m_Indices.find(key) == m_Indices.end())
             {
@@ -253,7 +253,7 @@ namespace Swift
             }
         }
 
-        void erase(const Key& key)
+        inline void erase(const Key& key)
         {
             if (m_Indices.find(key) != m_Indices.end())
             {
@@ -262,14 +262,164 @@ namespace Swift
             }
         }
 
-        auto begin() { return m_Items.begin(); }
-        const auto begin() const { return m_Items.begin(); }
-        auto end() { return m_Items.end(); }
-        const auto end() const { return m_Items.end(); }
+        inline auto begin() { return m_Items.begin(); }
+        inline const auto begin() const { return m_Items.begin(); }
+        inline auto end() { return m_Items.end(); }
+        inline const auto end() const { return m_Items.end(); }
 
     public:
         std::unordered_map<Key, size_t> m_Indices = { };
         std::vector<std::pair<Key, Value>> m_Items = { };
     };
+
+
+    // A threadsafe linked list class
+    template <typename T>
+    class LinkedList 
+    {
+    private:
+        struct Node;
+    public:
+        LinkedList() 
+            : Head(nullptr) 
+        {
+        }
+
+        virtual ~LinkedList() 
+        {
+            Clear();
+        }
+
+        inline void Push(const T& newData) 
+        {
+            std::scoped_lock<std::mutex> lock(m_Mutex);
+
+            Node* newNode = new Node(newData);
+            if (!Head) 
+            {
+                Head = newNode;
+                return;
+            }
+
+            Node* current = Head;
+            while (current->Next)
+                current = current->Next;
+
+            current->Next = newNode;
+        }
+
+        inline void Pop() 
+        {
+            std::scoped_lock<std::mutex> lock(m_Mutex);
+
+            if (Head) 
+            {
+                Node* temp = Head;
+                Head = Head->Next;
+                delete temp;
+            }
+        }
+
+        inline T& Front() 
+        {
+            std::scoped_lock<std::mutex> lock(m_Mutex);
+
+            if (Head) 
+                return Head->Data;
+
+            APP_ASSERT(false, "LinkedList is empty");
+            
+            static T empty = {};
+            return empty;
+        }
+
+        inline std::vector<T>& AsVector() const 
+        {
+            std::scoped_lock<std::mutex> lock(m_Mutex);
+
+            static std::vector<T> result = { };
+            result.clear();
+
+            Node* current = Head;
+            while (current) 
+            {
+                result.push_back(current->Data);
+                current = current->Next;
+            }
+
+            return result;
+        }
+
+        inline void Remove(const T& value) 
+        {
+            std::scoped_lock<std::mutex> lock(m_Mutex);
+
+            Node* current = Head;
+            Node* prev = nullptr;
+
+            while (current) 
+            {
+                if (current->Data == value) 
+                {
+                    if (prev)
+                        prev->Next = current->Next;
+                    else
+                        Head = current->Next;
+
+                    delete current;
+                    return;
+                }
+                prev = current;
+                current = current->Next;
+            }
+
+            APP_ASSERT(false, "Failed to find item by T value and remove it from LinkedList.");
+        }
+
+        inline bool HasItem(const T& value) const
+        {
+            Node* current = Head;
+            while (current)
+            {
+                if (current->Data == value)
+                    return true;
+
+                current = current->Next;
+            }
+
+            return false;
+        }
+
+        inline void Clear() 
+        {
+            while (Head) 
+            {
+                Node* temp = Head;
+                Head = Head->Next;
+                delete temp;
+            }
+        }
+
+        inline bool Empty() const { return Head == nullptr; }
+
+    private:
+        struct Node
+        {
+        public:
+            T Data = {};
+            Node* Next = nullptr;
+
+        public:
+            Node(const T& newData) 
+                : Data(newData), Next(nullptr) 
+            {
+            }
+        };
+    private:
+        mutable std::mutex m_Mutex = {};
+
+        Node* Head = nullptr;
+    };
+
 
 }

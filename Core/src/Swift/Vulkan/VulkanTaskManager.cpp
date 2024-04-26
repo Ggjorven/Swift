@@ -11,12 +11,12 @@ namespace Swift
 {
 
 	std::mutex									VulkanTaskManager::s_SemaphoreMutex;
-	Dict<uint32_t, std::queue<VkSemaphore>>		VulkanTaskManager::s_Semaphores;
+	Dict<uint32_t, LinkedList<VkSemaphore>>		VulkanTaskManager::s_Semaphores;
 	std::mutex									VulkanTaskManager::s_FrameSemaphoreMutex;
-	Dict<uint32_t, std::queue<VkSemaphore>>		VulkanTaskManager::s_FrameSemaphores;
+	Dict<uint32_t, LinkedList<VkSemaphore>>		VulkanTaskManager::s_FrameSemaphores;
 
 	std::mutex									VulkanTaskManager::s_FenceMutex;
-	Dict<uint32_t, std::queue<VkFence>>			VulkanTaskManager::s_Fences;
+	Dict<uint32_t, LinkedList<VkFence>>			VulkanTaskManager::s_Fences;
 
 
 
@@ -24,24 +24,21 @@ namespace Swift
 	{
 		std::scoped_lock<std::mutex> lock(s_SemaphoreMutex);
 
-		uint32_t frame = ((VulkanRenderer*)Renderer::GetInstance())->GetSwapChain()->GetCurrentFrame();
-		s_Semaphores[frame].push(semaphore);
+		s_Semaphores[Renderer::GetCurrentFrame()].Push(semaphore);
 	}
 
 	void VulkanTaskManager::AddFrameSemaphore(VkSemaphore semaphore)
 	{
 		std::scoped_lock<std::mutex> lock(s_FrameSemaphoreMutex);
 
-		uint32_t frame = ((VulkanRenderer*)Renderer::GetInstance())->GetSwapChain()->GetCurrentFrame();
-		s_FrameSemaphores[frame].push(semaphore);
+		s_FrameSemaphores[Renderer::GetCurrentFrame()].Push(semaphore);
 	}
 
 	void VulkanTaskManager::AddFence(VkFence fence)
 	{
 		std::scoped_lock<std::mutex> lock(s_FenceMutex);
 
-		uint32_t frame = ((VulkanRenderer*)Renderer::GetInstance())->GetSwapChain()->GetCurrentFrame();
-		s_Fences[frame].push(fence);
+		s_Fences[Renderer::GetCurrentFrame()].Push(fence);
 	}
 
 	VkSemaphore& VulkanTaskManager::GetFirstSempahore()
@@ -50,9 +47,14 @@ namespace Swift
 
 		static VkSemaphore semaphore = VK_NULL_HANDLE;
 
-		uint32_t frame = ((VulkanRenderer*)Renderer::GetInstance())->GetSwapChain()->GetCurrentFrame();
-		semaphore = std::move(s_Semaphores[frame].front());
-		s_Semaphores[frame].pop();
+		uint32_t frame = Renderer::GetCurrentFrame();
+
+		if (!s_Semaphores[frame].Empty())
+		{
+			semaphore = std::move(s_Semaphores[frame].Front());
+			s_Semaphores[frame].Pop();
+		}
+
 		return semaphore;
 	}
 
@@ -62,9 +64,14 @@ namespace Swift
 
 		static VkFence fence = VK_NULL_HANDLE;
 
-		uint32_t frame = ((VulkanRenderer*)Renderer::GetInstance())->GetSwapChain()->GetCurrentFrame();
-		fence = std::move(s_Fences[frame].front());
-		s_Fences[frame].pop();
+		uint32_t frame = Renderer::GetCurrentFrame();
+
+		if (!s_Fences[frame].Empty())
+		{
+			fence = std::move(s_Fences[frame].Front());
+			s_Fences[frame].Pop();
+		}
+
 		return fence;
 	}
 
@@ -74,18 +81,13 @@ namespace Swift
 
 		static std::vector<VkSemaphore> semaphores = { };
 		semaphores.clear();
-		
-		uint32_t frame = ((VulkanRenderer*)Renderer::GetInstance())->GetSwapChain()->GetCurrentFrame();
-		while (!s_Semaphores[frame].empty())
-		{
-			semaphores.push_back(std::move(s_Semaphores[frame].front()));
-			s_Semaphores[frame].pop();
-		}
-		while (!s_FrameSemaphores[frame].empty())
-		{
-			semaphores.push_back(std::move(s_FrameSemaphores[frame].front()));
-			s_FrameSemaphores[frame].pop();
-		}
+
+		uint32_t frame = Renderer::GetCurrentFrame();
+		semaphores = s_Semaphores[frame].AsVector();
+		semaphores.insert(semaphores.end(), s_FrameSemaphores[frame].AsVector().begin(), s_FrameSemaphores[frame].AsVector().end());
+
+		s_Semaphores[frame].Clear();
+		s_FrameSemaphores[frame].Clear();
 
 		return semaphores;
 	}
@@ -97,14 +99,22 @@ namespace Swift
 		static std::vector<VkFence> fences = { };
 		fences.clear();
 
-		uint32_t frame = ((VulkanRenderer*)Renderer::GetInstance())->GetSwapChain()->GetCurrentFrame();
-		while (!s_Fences[frame].empty())
-		{
-			fences.push_back(std::move(s_Fences[frame].front()));
-			s_Fences[frame].pop();
-		}
+		uint32_t frame = Renderer::GetCurrentFrame();
+		fences = s_Fences[frame].AsVector();
+
+		s_Fences[frame].Clear();
 
 		return fences;
+	}
+
+	bool VulkanTaskManager::HasSemaphore(VkSemaphore semaphore)
+	{
+		std::scoped_lock<std::mutex> lock(s_SemaphoreMutex);
+		std::scoped_lock<std::mutex> lock2(s_FrameSemaphoreMutex);
+
+		uint32_t frame = Renderer::GetCurrentFrame();
+
+		return s_Semaphores[frame].HasItem(semaphore) || s_FrameSemaphores[frame].HasItem(semaphore);
 	}
 
 	void VulkanTaskManager::RemoveSemaphore(VkSemaphore semaphore)
@@ -112,9 +122,16 @@ namespace Swift
 		std::scoped_lock<std::mutex> lock(s_SemaphoreMutex);
 		std::scoped_lock<std::mutex> lock2(s_FrameSemaphoreMutex);
 
-		for (size_t i = 0; i < (size_t)RendererSpecification::BufferCount; i++)
+		uint32_t frame = Renderer::GetCurrentFrame();
+
+		if (s_Semaphores[frame].HasItem(semaphore))
+			s_Semaphores[frame].Remove(semaphore);
+		else if (s_FrameSemaphores[frame].HasItem(semaphore))
+			s_FrameSemaphores[frame].Remove(semaphore);
+		else
 		{
-			// TODO: Implement once queues are removed
+			APP_ASSERT(false, "Semaphore by value {0} doesn't exist.", (void*)semaphore)
+			return;
 		}
 	}
 

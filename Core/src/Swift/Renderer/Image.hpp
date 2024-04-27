@@ -25,19 +25,19 @@ namespace Swift
 	enum class ImageUsageFlags : uint8_t
 	{
 		None = 0, Sampled = BIT(0), Storage = BIT(1), Colour = BIT(2), Depth = BIT(3), Transient = BIT(4), Input = BIT(5),
-		NoMipMaps = BIT(6)
+		NoMipMaps = BIT(6) // Note(Jorben): Depth always has to have the NoMipMaps flag
 	};
 	DEFINE_BITWISE_OPS(ImageUsageFlags)
 
 	enum class ImageLayout : uint32_t
 	{
-		Undefined = 0, General = 1, Colour = 2, ShaderRead = 5, Presentation = 1000001002, SharedPresentation = 1000111000
+		Undefined = 0, General = 1, Colour = 2, Depth = 3, ShaderRead = 5, Presentation = 1000001002, SharedPresentation = 1000111000
 	};
 	DEFINE_BITWISE_OPS(ImageLayout)
 
 	enum class ImageFormat : uint8_t
 	{
-		None = 0, RGBA, BGRA, sRGB
+		None = 0, RGBA, BGRA, sRGB, Depth32SFloat, Depth32SFloatS8, Depth24UnormS8
 	};
 
 	struct ImageSpecification

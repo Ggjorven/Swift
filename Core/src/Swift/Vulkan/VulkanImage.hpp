@@ -14,11 +14,28 @@ namespace Swift
 {
 
 	VkFormat GetVulkanFormatFromImageFormat(ImageFormat format);
+	ImageFormat GetImageFormatFromVulkanFormat(VkFormat format);
+
+	struct VulkanImageData
+	{
+	public:
+		VkImage Image = VK_NULL_HANDLE;
+		VmaAllocation Allocation = VK_NULL_HANDLE;
+		VkImageView ImageView = VK_NULL_HANDLE;
+		VkSampler Sampler = VK_NULL_HANDLE;
+
+	public:
+		VulkanImageData() = default;
+		VulkanImageData(VkImage image, VkImageView view, VkSampler sampler = VK_NULL_HANDLE);
+		VulkanImageData(VkImage image, VmaAllocation allocation, VkImageView view, VkSampler sampler = VK_NULL_HANDLE);
+		virtual ~VulkanImageData() = default;
+	};
 
 	class VulkanImage2D : public Image2D
 	{
 	public:
 		VulkanImage2D(const ImageSpecification& specs);
+		VulkanImage2D(const ImageSpecification& specs, const VulkanImageData& data);
 		virtual ~VulkanImage2D();
 
 		void SetData(void* data, size_t size) override;
@@ -28,15 +45,21 @@ namespace Swift
 		void Upload(Ref<DescriptorSet> set, Descriptor element) override;
 		void Transition(ImageLayout initial, ImageLayout final) override;
 
+		// Helper function for swapchain
+		void SetImageData(const ImageSpecification& specs, const VulkanImageData& data);
+
 		inline ImageSpecification& GetSpecification() override { return m_Specification; }
 		inline uint32_t GetWidth() const override { return m_Specification.Width; }
 		inline uint32_t GetHeight() const override { return m_Specification.Height; }
 
 		VkFormat GetFormat() const;
 
-		inline VkImage GetVulkanImage() { return m_Image; }
-		inline VkImageView GetImageView() { return m_ImageView; }
-		inline VkSampler GetSampler() { return m_Sampler; }
+		inline VkImage GetVulkanImage() { return m_Data.Image; }
+		inline VmaAllocation GetAllocation() { return m_Data.Allocation; }
+		inline VkImageView GetImageView() { return m_Data.ImageView; }
+		inline VkSampler GetSampler() { return m_Data.Sampler; }
+
+		inline VulkanImageData GetImageData() { return m_Data; }
 
 	private:
 		void CreateImage(uint32_t width, uint32_t height);
@@ -47,11 +70,7 @@ namespace Swift
 	private:
 		ImageSpecification m_Specification = {};
 
-		VkImage m_Image = VK_NULL_HANDLE;
-		VmaAllocation m_Allocation = VK_NULL_HANDLE;
-
-		VkImageView m_ImageView = VK_NULL_HANDLE;
-		VkSampler m_Sampler = VK_NULL_HANDLE;
+		VulkanImageData m_Data = {};
 
 		uint32_t m_Miplevels = 1;
 	};

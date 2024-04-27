@@ -86,6 +86,16 @@ namespace Swift
 		return s_RenderInstance->GetCurrentFrame();;
 	}
 
+	std::vector<Ref<Image2D>>& Renderer::GetSwapChainImages()
+	{
+		return s_RenderInstance->GetSwapChainImages();
+	}
+
+	Ref<Image2D> Renderer::GetDepthImage()
+	{
+		return s_RenderInstance->GetDepthImage();
+	}
+
 	RenderInstance* Renderer::GetInstance()
 	{
 		return s_RenderInstance;

@@ -49,7 +49,10 @@ namespace Swift
 
 		inline Utils::Queue<RenderFunction>& GetRenderQueue() override { return m_RenderQueue; }
 		inline Utils::Queue<FreeFunction>& GetFreeQueue() override { return m_ResourceFreeQueue; }
+
 		inline uint32_t GetCurrentFrame() const override { return m_SwapChain->GetCurrentFrame(); }
+		inline std::vector<Ref<Image2D>>& GetSwapChainImages() { return m_SwapChain->GetSwapChainImages(); }
+		inline Ref<Image2D> GetDepthImage() { return m_SwapChain->GetDepthImage(); }
 
 	public:
 		inline VkInstance& GetVulkanInstance() { return m_VulkanInstance; }

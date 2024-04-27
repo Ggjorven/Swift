@@ -9,6 +9,8 @@
 #include "Swift/Core/Core.hpp"
 #include "Swift/Utils/Utils.hpp"
 
+#include "Swift/Renderer/Image.hpp"
+
 #include "Swift/Vulkan/VulkanDevice.hpp"
 
 namespace Swift
@@ -16,18 +18,6 @@ namespace Swift
 
 	class VulkanSwapChain
 	{
-	public:
-		struct SwapchainImage
-		{
-			VkImage Image = VK_NULL_HANDLE;
-			VkImageView ImageView = VK_NULL_HANDLE;
-		};
-		struct DepthImage
-		{
-			VkImage Image = VK_NULL_HANDLE;
-			VmaAllocation MemoryAlloc = VK_NULL_HANDLE;
-			VkImageView ImageView = VK_NULL_HANDLE;
-		};
 	public:
 		VulkanSwapChain(VkInstance vkInstance, Ref<VulkanDevice> vkDevice);
 		virtual ~VulkanSwapChain();
@@ -38,20 +28,14 @@ namespace Swift
 		void EndFrame();
 
 		void OnResize(uint32_t width, uint32_t height, const bool vsync);
-		void ResizeDepth(uint32_t width, uint32_t height);
 
 		inline VkFormat GetColourFormat() const { return m_ColourFormat; }
 
 		inline uint32_t GetCurrentFrame() const { return m_CurrentFrame; }
 		inline uint32_t GetAquiredImage() const { return m_AquiredImage; }
 
-		std::vector<VkImageView> GetImageViews();
-		inline VkImageView GetDepthImageView() { return m_DepthStencil.ImageView; }
-		inline DepthImage& GetDepthImage() { return m_DepthStencil; }
-
-		std::vector<SwapchainImage> GetSwapChainImages() { return m_Images; }
-
-		inline VkImage& GetCurrentImage() { return m_Images[m_CurrentFrame].Image; }
+		inline std::vector<Ref<Image2D>>& GetSwapChainImages() { return m_Images; }
+		inline Ref<Image2D>& GetDepthImage() { return m_DepthStencil; }
 
 		// Note(Jorben): This function is used by VulkanRenderCommandBuffers to wait for the image to be available
 		inline VkSemaphore& GetCurrentImageAvailableSemaphore() { return m_ImageAvailableSemaphores[m_CurrentFrame]; }
@@ -70,8 +54,8 @@ namespace Swift
 		Ref<VulkanDevice> m_Device = VK_NULL_HANDLE;
 		VkSwapchainKHR m_SwapChain = VK_NULL_HANDLE;
 
-		std::vector<SwapchainImage> m_Images = { };
-		DepthImage m_DepthStencil = {};
+		std::vector<Ref<Image2D>> m_Images = { };
+		Ref<Image2D> m_DepthStencil = VK_NULL_HANDLE;
 
 		VkCommandPool m_CommandPool = VK_NULL_HANDLE;
 

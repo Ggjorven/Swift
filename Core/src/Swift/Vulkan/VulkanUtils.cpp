@@ -470,14 +470,49 @@ namespace Swift
 		command.EndAndSubmit();
 	}
 
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// Initialization
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	static size_t s_Allocations = 0;
+
+	static void* VKAPI_PTR VmaAllocFn(void* pUserData, size_t size, size_t alignment, VkSystemAllocationScope allocationScope)
+	{
+		//s_Allocations++;
+		//APP_LOG_TRACE("Allocated Vulkan Memory: (Size: {0} | Total Allocs: {1})", size, s_Allocations);
+
+		return std::malloc(size);
+	}
+
+	static void VKAPI_PTR VmaFreeFn(void* pUserData, void* pMemory)
+	{
+		//s_Allocations--;
+		//APP_LOG_TRACE("Freed Vulkan Memory: (Total Allocs: {0})", s_Allocations);
+		
+		std::free(pMemory);
+	}
+
+	static void* VKAPI_PTR VmaReallocFn(void* pUserData, void* pOriginal, size_t size, size_t alignment, VkSystemAllocationScope allocationScope) 
+	{
+		return std::realloc(pOriginal, size);
+	}
+
 	void VulkanAllocator::Init()
 	{
 		auto renderer = (VulkanRenderer*)Renderer::GetInstance();
+
+		VkAllocationCallbacks callbacks = {};
+		callbacks.pUserData = nullptr;
+		callbacks.pfnAllocation = VmaAllocFn;
+		callbacks.pfnFree = VmaFreeFn;
+		callbacks.pfnReallocation = VmaReallocFn;
+		callbacks.pfnInternalAllocation = nullptr;
+		callbacks.pfnInternalFree = nullptr;
 
 		VmaAllocatorCreateInfo allocatorInfo = {};
 		allocatorInfo.instance = renderer->GetVulkanInstance();
 		allocatorInfo.physicalDevice = renderer->GetPhysicalDevice()->GetVulkanPhysicalDevice();
 		allocatorInfo.device = renderer->GetLogicalDevice()->GetVulkanDevice();
+		allocatorInfo.pAllocationCallbacks = &callbacks;
 
 		if (vmaCreateAllocator(&allocatorInfo, &s_Allocator) != VK_SUCCESS)
 			APP_LOG_ERROR("Failed to create VMA allocator!");

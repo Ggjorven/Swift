@@ -58,8 +58,11 @@ namespace Swift
 	VulkanRenderer::~VulkanRenderer()
 	{
 		Wait();
-		m_ResourceFreeQueue.Execute();
 
+		m_SwapChain->GetSwapChainImages().clear(); // TODO: Find a better way to do this
+		m_SwapChain->GetDepthImage().reset(); // TODO: Find a better way to do this
+		m_ResourceFreeQueue.Execute();
+		
 		m_SwapChain.reset();
 		VulkanAllocator::Destroy(); 
 

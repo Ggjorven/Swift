@@ -12,6 +12,7 @@ namespace Swift
 
 	class CommandBuffer;
 	class IndexBuffer;
+	class Image2D;
 
 	class RenderInstance
 	{
@@ -36,8 +37,11 @@ namespace Swift
 
 		virtual Utils::Queue<RenderFunction>& GetRenderQueue() = 0;
 		virtual Utils::Queue<FreeFunction>& GetFreeQueue() = 0;
-		virtual uint32_t GetCurrentFrame() const = 0;
 
+		virtual uint32_t GetCurrentFrame() const = 0;
+		virtual std::vector<Ref<Image2D>>& GetSwapChainImages() = 0;
+		virtual Ref<Image2D> GetDepthImage() = 0;
+		
 		static RenderInstance* Create();
 	};
 

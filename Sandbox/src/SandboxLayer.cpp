@@ -56,7 +56,7 @@ void SandboxLayer::OnAttach()
 
 	ImageSpecification imageSpecs = {};
 	imageSpecs.Usage = ImageUsage::Size;
-	imageSpecs.Flags = ImageUsageFlags::Storage | ImageUsageFlags::Sampled;
+	imageSpecs.Flags = ImageUsageFlags::Colour | ImageUsageFlags::Storage | ImageUsageFlags::Sampled;
 	imageSpecs.Layout = ImageLayout::ShaderRead;
 	imageSpecs.Format = ImageFormat::RGBA;
 	imageSpecs.Width = 1280;
@@ -79,9 +79,12 @@ void SandboxLayer::OnAttach()
 		auto cmdBuffer = CommandBuffer::Create(cmdBufSpecs);
 
 		RenderPassSpecification renderPassSpecs = {};
-		renderPassSpecs.Attachments = RenderPassAttachments::Colour | RenderPassAttachments::Depth;
+		renderPassSpecs.ColourAttachment = Renderer::GetSwapChainImages();
 		renderPassSpecs.ColourLoadOp = ColourLoadOperation::Clear;
 		renderPassSpecs.ColourClearColour = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+		renderPassSpecs.DepthAttachment = Renderer::GetDepthImage();
+
 		renderPassSpecs.PreviousImageLayout = ImageLayout::Undefined;
 		renderPassSpecs.FinalImageLayout = ImageLayout::Presentation;
 
@@ -157,7 +160,7 @@ void SandboxLayer::OnRender()
 
 		m_ComputePipeline->GetDescriptorSets()->GetSets(0)[0]->Bind(m_ComputePipeline, m_ComputeCommandBuffer, PipelineBindPoint::Compute);
 
-		m_ComputeShader->Dispatch(m_ComputeCommandBuffer, m_Image->GetSpecification().Width / 16 + 1, m_Image->GetSpecification().Height / 16 + 1, 1);
+		m_ComputeShader->Dispatch(m_ComputeCommandBuffer, (uint32_t)std::ceil(m_Image->GetSpecification().Width / 16.0f), (uint32_t)std::ceil(m_Image->GetSpecification().Height / 16.0f), 1);
 
 		m_ComputeCommandBuffer->End();
 		m_ComputeCommandBuffer->Submit(Queue::Compute);

@@ -21,18 +21,14 @@ namespace Swift
 	};
 	DEFINE_BITWISE_OPS(ColourLoadOperation)
 
-	enum class RenderPassAttachments : uint8_t
-	{
-		None = 0, Colour = BIT(0), Depth = BIT(1)
-	};
-	DEFINE_BITWISE_OPS(RenderPassAttachments)
-
 	struct RenderPassSpecification
 	{
 	public:
-		RenderPassAttachments Attachments = RenderPassAttachments::Colour;
+		std::vector<Ref<Image2D>> ColourAttachment = { };
 		ColourLoadOperation ColourLoadOp = ColourLoadOperation::Clear;
 		glm::vec4 ColourClearColour = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+		Ref<Image2D> DepthAttachment = nullptr;
 
 		ImageLayout PreviousImageLayout = ImageLayout::Undefined;
 		ImageLayout FinalImageLayout = ImageLayout::Presentation;

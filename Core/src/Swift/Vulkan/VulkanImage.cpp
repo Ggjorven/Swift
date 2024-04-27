@@ -17,10 +17,17 @@ namespace Swift
 {
 
 	static VkImageUsageFlags GetVulkanImageUsageFromImageUsage(ImageUsageFlags usage);
+	static VkImageAspectFlags GetVulkanImageAspectFromImageUsage(ImageUsageFlags usage);
 
 	VulkanImage2D::VulkanImage2D(const ImageSpecification& specs)
 		: m_Specification(specs)
 	{
+		if (!(m_Specification.Flags & ImageUsageFlags::Colour) && !(m_Specification.Flags & ImageUsageFlags::Depth))
+		{
+			APP_ASSERT(false, "Tried to create image without specifying if it's a Colour or Depth image.");
+			return;
+		}
+
 		switch (m_Specification.Usage)
 		{
 		case ImageUsage::Size:
@@ -36,24 +43,26 @@ namespace Swift
 		}
 	}
 
+	VulkanImage2D::VulkanImage2D(const ImageSpecification& specs, const VulkanImageData& data)
+	{
+		SetImageData(specs, data);
+	}
+
 	VulkanImage2D::~VulkanImage2D()
 	{
-		auto sampler = m_Sampler;
-		auto imageView = m_ImageView;
-		auto image = m_Image;
-		auto allocation = m_Allocation;
+		auto data = m_Data;
 
-		Renderer::SubmitFree([sampler, imageView, image, allocation]()
+		Renderer::SubmitFree([data]()
 		{
 			auto device = ((VulkanRenderer*)Renderer::GetInstance())->GetLogicalDevice()->GetVulkanDevice();
 			Renderer::Wait();
 
-			vkDestroySampler(device, sampler, nullptr);
-			vkDestroyImageView(device, imageView, nullptr);
+			vkDestroySampler(device, data.Sampler, nullptr);
+			vkDestroyImageView(device, data.ImageView, nullptr);
 
 			VulkanAllocator allocator = {};
-			if (image != VK_NULL_HANDLE)
-				allocator.DestroyImage(image, allocation);
+			if (data.Image != VK_NULL_HANDLE && data.Allocation != VK_NULL_HANDLE)
+				allocator.DestroyImage(data.Image, data.Allocation);
 		});
 	}
 
@@ -72,32 +81,29 @@ namespace Swift
 		memcpy(mappedData, data, size);
 		VulkanAllocator::UnMapMemory(stagingBufferAllocation);
 
-		VulkanAllocator::TransitionImageLayout(m_Image, GetVulkanFormatFromImageFormat(m_Specification.Format), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_Miplevels);
-		allocator.CopyBufferToImage(stagingBuffer, m_Image, m_Specification.Width, m_Specification.Height);
-		GenerateMipmaps(m_Image, GetVulkanFormatFromImageFormat(m_Specification.Format), m_Specification.Width, m_Specification.Height, m_Miplevels);
+		VulkanAllocator::TransitionImageLayout(m_Data.Image, GetVulkanFormatFromImageFormat(m_Specification.Format), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_Miplevels);
+		allocator.CopyBufferToImage(stagingBuffer, m_Data.Image, m_Specification.Width, m_Specification.Height);
+		GenerateMipmaps(m_Data.Image, GetVulkanFormatFromImageFormat(m_Specification.Format), m_Specification.Width, m_Specification.Height, m_Miplevels);
 
-		VulkanAllocator::TransitionImageLayout(m_Image, GetVulkanFormatFromImageFormat(m_Specification.Format), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, (VkImageLayout)m_Specification.Layout, m_Miplevels);
+		VulkanAllocator::TransitionImageLayout(m_Data.Image, GetVulkanFormatFromImageFormat(m_Specification.Format), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, (VkImageLayout)m_Specification.Layout, m_Miplevels);
 
 		allocator.DestroyBuffer(stagingBuffer, stagingBufferAllocation);
 	}
 
 	void VulkanImage2D::Resize(uint32_t width, uint32_t height)
 	{
-		auto sampler = m_Sampler;
-		auto imageView = m_ImageView;
-		auto image = m_Image;
-		auto allocation = m_Allocation;
+		auto data = m_Data;
 
-		Renderer::SubmitFree([sampler, imageView, image, allocation]()
+		Renderer::SubmitFree([data]()
 		{
 			auto device = ((VulkanRenderer*)Renderer::GetInstance())->GetLogicalDevice()->GetVulkanDevice();
 
-			vkDestroySampler(device, sampler, nullptr);
-			vkDestroyImageView(device, imageView, nullptr);
+			vkDestroySampler(device, data.Sampler, nullptr);
+			vkDestroyImageView(device, data.ImageView, nullptr);
 
 			VulkanAllocator allocator = {};
-			if (image != VK_NULL_HANDLE)
-				allocator.DestroyImage(image, allocation);
+			if (data.Image != VK_NULL_HANDLE && data.Allocation != VK_NULL_HANDLE)
+				allocator.DestroyImage(data.Image, data.Allocation);
 		});
 
 		CreateImage(width, height);
@@ -113,8 +119,8 @@ namespace Swift
 		{
 			VkDescriptorImageInfo imageInfo = {};
 			imageInfo.imageLayout = (VkImageLayout)m_Specification.Layout;
-			imageInfo.imageView = m_ImageView;
-			imageInfo.sampler = m_Sampler;
+			imageInfo.imageView = m_Data.ImageView;
+			imageInfo.sampler = m_Data.Sampler;
 
 			VkWriteDescriptorSet descriptorWrite = {};
 			descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -131,8 +137,14 @@ namespace Swift
 
 	void VulkanImage2D::Transition(ImageLayout initial, ImageLayout final)
 	{
-		VulkanAllocator::TransitionImageLayout(m_Image, GetVulkanFormatFromImageFormat(m_Specification.Format), (VkImageLayout)initial, (VkImageLayout)final, m_Miplevels);
+		VulkanAllocator::TransitionImageLayout(m_Data.Image, GetVulkanFormatFromImageFormat(m_Specification.Format), (VkImageLayout)initial, (VkImageLayout)final, m_Miplevels);
 		m_Specification.Layout = final;
+	}
+
+	void VulkanImage2D::SetImageData(const ImageSpecification& specs, const VulkanImageData& data)
+	{
+		m_Specification = specs;
+		m_Data = data;
 	}
 
 	VkFormat VulkanImage2D::GetFormat() const
@@ -148,12 +160,12 @@ namespace Swift
 			m_Miplevels = static_cast<uint32_t>(std::floor(std::log2(std::max(width, height)))) + 1;
 
 		VulkanAllocator allocator = {};
-		m_Allocation = allocator.AllocateImage(width, height, m_Miplevels, GetVulkanFormatFromImageFormat(m_Specification.Format), VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | GetVulkanImageUsageFromImageUsage(m_Specification.Flags), VMA_MEMORY_USAGE_GPU_ONLY, m_Image);
+		m_Data.Allocation = allocator.AllocateImage(width, height, m_Miplevels, GetVulkanFormatFromImageFormat(m_Specification.Format), VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | GetVulkanImageUsageFromImageUsage(m_Specification.Flags), VMA_MEMORY_USAGE_GPU_ONLY, m_Data.Image);
 
-		m_ImageView = allocator.CreateImageView(m_Image, GetVulkanFormatFromImageFormat(m_Specification.Format), VK_IMAGE_ASPECT_COLOR_BIT, m_Miplevels);
-		m_Sampler = allocator.CreateSampler(m_Miplevels);
+		m_Data.ImageView = allocator.CreateImageView(m_Data.Image, GetVulkanFormatFromImageFormat(m_Specification.Format), GetVulkanImageAspectFromImageUsage(m_Specification.Flags), m_Miplevels);
+		m_Data.Sampler = allocator.CreateSampler(m_Miplevels);
 
-		VulkanAllocator::TransitionImageLayout(m_Image, GetVulkanFormatFromImageFormat(m_Specification.Format), VK_IMAGE_LAYOUT_UNDEFINED, (VkImageLayout)m_Specification.Layout, m_Miplevels);
+		VulkanAllocator::TransitionImageLayout(m_Data.Image, GetVulkanFormatFromImageFormat(m_Specification.Format), VK_IMAGE_LAYOUT_UNDEFINED, (VkImageLayout)m_Specification.Layout, m_Miplevels);
 	}
 
 	void VulkanImage2D::CreateImage(const std::filesystem::path& path)
@@ -175,10 +187,10 @@ namespace Swift
 		size_t imageSize = m_Specification.Width * m_Specification.Height * 4;
 
 		VulkanAllocator allocator = {};
-		m_Allocation = allocator.AllocateImage(m_Specification.Width, m_Specification.Height, m_Miplevels, GetVulkanFormatFromImageFormat(m_Specification.Format), VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | GetVulkanImageUsageFromImageUsage(m_Specification.Flags), VMA_MEMORY_USAGE_GPU_ONLY, m_Image);
+		m_Data.Allocation = allocator.AllocateImage(m_Specification.Width, m_Specification.Height, m_Miplevels, GetVulkanFormatFromImageFormat(m_Specification.Format), VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | GetVulkanImageUsageFromImageUsage(m_Specification.Flags), VMA_MEMORY_USAGE_GPU_ONLY, m_Data.Image);
 
-		m_ImageView = allocator.CreateImageView(m_Image, GetVulkanFormatFromImageFormat(m_Specification.Format), VK_IMAGE_ASPECT_COLOR_BIT, m_Miplevels);
-		m_Sampler = allocator.CreateSampler(m_Miplevels);
+		m_Data.ImageView = allocator.CreateImageView(m_Data.Image, GetVulkanFormatFromImageFormat(m_Specification.Format), VK_IMAGE_ASPECT_COLOR_BIT, m_Miplevels);
+		m_Data.Sampler = allocator.CreateSampler(m_Miplevels);
 
 		SetData((void*)pixels, imageSize);
 		stbi_image_free((void*)pixels);
@@ -282,6 +294,12 @@ namespace Swift
 			return VK_FORMAT_R8G8B8A8_SRGB;
 		case ImageFormat::BGRA:
 			return VK_FORMAT_B8G8R8A8_UNORM;
+		case ImageFormat::Depth32SFloat:
+			return VK_FORMAT_D32_SFLOAT;
+		case ImageFormat::Depth32SFloatS8:
+			return VK_FORMAT_D32_SFLOAT_S8_UINT;
+		case ImageFormat::Depth24UnormS8:
+			return VK_FORMAT_D24_UNORM_S8_UINT;
 
 		default:
 			APP_LOG_ERROR("Invalid image format.");
@@ -289,6 +307,31 @@ namespace Swift
 		}
 
 		return VK_FORMAT_UNDEFINED;
+	}
+	
+	ImageFormat GetImageFormatFromVulkanFormat(VkFormat format)
+	{
+		switch (format)
+		{
+		case VK_FORMAT_R8G8B8A8_UNORM:
+			return ImageFormat::RGBA;
+		case VK_FORMAT_R8G8B8A8_SRGB:
+			return ImageFormat::sRGB;
+		case VK_FORMAT_B8G8R8A8_UNORM:
+			return ImageFormat::BGRA;
+		case VK_FORMAT_D32_SFLOAT:
+			return ImageFormat::Depth32SFloat;
+		case VK_FORMAT_D32_SFLOAT_S8_UINT:
+			return ImageFormat::Depth32SFloatS8;
+		case VK_FORMAT_D24_UNORM_S8_UINT:
+			return ImageFormat::Depth24UnormS8;
+
+		default:
+			APP_LOG_ERROR("Invalid image format.");
+			break;
+		}
+
+		return ImageFormat::None;
 	}
 
 	static VkImageUsageFlags GetVulkanImageUsageFromImageUsage(ImageUsageFlags usage)
@@ -311,5 +354,28 @@ namespace Swift
 		return flags;
 	}
 
+	static VkImageAspectFlags GetVulkanImageAspectFromImageUsage(ImageUsageFlags usage)
+	{
+		VkImageAspectFlags flags = 0;
+		
+		if (usage & ImageUsageFlags::Colour)
+			flags = flags | VK_IMAGE_ASPECT_COLOR_BIT;
+		if (usage & ImageUsageFlags::Depth)
+			flags = flags | VK_IMAGE_ASPECT_DEPTH_BIT;
+
+		return flags;
+	}
+
+
+
+	VulkanImageData::VulkanImageData(VkImage image, VkImageView view, VkSampler sampler)
+		: Image(image), ImageView(view), Sampler(sampler)
+	{
+	}
+
+	VulkanImageData::VulkanImageData(VkImage image, VmaAllocation allocation, VkImageView view, VkSampler sampler)
+		: Image(image), Allocation(allocation), ImageView(view), Sampler(sampler)
+	{
+	}
 
 }

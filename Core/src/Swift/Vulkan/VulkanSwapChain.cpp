@@ -9,6 +9,7 @@
 #include "Swift/Renderer/Renderer.hpp"
 
 #include "Swift/Vulkan/VulkanUtils.hpp"
+#include "Swift/Vulkan/VulkanImage.hpp"
 #include "Swift/Vulkan/VulkanRenderer.hpp"
 #include "Swift/Vulkan/VulkanTaskManager.hpp"
 
@@ -29,12 +30,8 @@ namespace Swift
 		if (m_SwapChain)
 			vkDestroySwapchainKHR(device, m_SwapChain, nullptr);
 
-		for (auto& image : m_Images)
-			vkDestroyImageView(device, image.ImageView, nullptr);
-
-		VulkanAllocator allocator = {};
-		allocator.DestroyImage(m_DepthStencil.Image, m_DepthStencil.MemoryAlloc);
-		vkDestroyImageView(device, m_DepthStencil.ImageView, nullptr);
+		m_Images.clear();
+		m_DepthStencil.reset();
 
 		vkDestroyCommandPool(device, m_CommandPool, nullptr);
 
@@ -92,40 +89,6 @@ namespace Swift
 		auto device = m_Device->GetVulkanDevice();
 
 		Init(width, height, vsync);
-	}
-
-	void VulkanSwapChain::ResizeDepth(uint32_t width, uint32_t height)
-	{
-		auto device = m_Device->GetVulkanDevice();
-		auto depthStencil = m_DepthStencil;
-		Renderer::SubmitFree([device, depthStencil]()
-		{
-			VulkanAllocator allocator = {};
-			
-			if (depthStencil.Image)
-				allocator.DestroyImage(depthStencil.Image, depthStencil.MemoryAlloc);
-			if (depthStencil.ImageView)
-				vkDestroyImageView(device, depthStencil.ImageView, nullptr);
-		});
-
-		VulkanAllocator allocator = {};
-
-		VkFormat depthFormat = VulkanAllocator::FindDepthFormat();
-		m_DepthStencil.MemoryAlloc = allocator.AllocateImage(width, height, 1, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VMA_MEMORY_USAGE_GPU_ONLY, m_DepthStencil.Image);
-
-		m_DepthStencil.ImageView = allocator.CreateImageView(m_DepthStencil.Image, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
-		VulkanAllocator::TransitionImageLayout(m_DepthStencil.Image, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1);
-	}
-
-	std::vector<VkImageView> VulkanSwapChain::GetImageViews()
-	{
-		std::vector<VkImageView> views = { };
-		views.clear();
-
-		for (auto& image : m_Images)
-			views.push_back(image.ImageView);
-
-		return views;
 	}
 
 	void VulkanSwapChain::Init(uint32_t width, uint32_t height, const bool vsync)
@@ -269,50 +232,43 @@ namespace Swift
 		if (oldSwapchain)
 			vkDestroySwapchainKHR(device, oldSwapchain, nullptr); // Destroys Images?
 
-		// Destroy old images
+		// Destroy old swapchain image(view)s
 		if (Renderer::Initialized())
 		{
-			auto images = m_Images;
-			auto depthStencil = m_DepthStencil;
-			Renderer::SubmitFree([device, images, depthStencil]()
+			std::vector<VulkanImageData> images = { };
+			for (auto& image : m_Images)
 			{
-				VulkanAllocator allocator = {};
+				auto vkImage = RefHelper::RefAs<VulkanImage2D>(image);
+				images.push_back(vkImage->GetImageData());
+			}
 
+			Renderer::SubmitFree([device, images]()
+			{
 				for (auto& image : images)
 					vkDestroyImageView(device, image.ImageView, nullptr);
-
-				if (depthStencil.Image)
-					allocator.DestroyImage(depthStencil.Image, depthStencil.MemoryAlloc);
-				if (depthStencil.ImageView)
-					vkDestroyImageView(device, depthStencil.ImageView, nullptr);
 			});
-			m_Images.clear();
 		}
 
 		// Get the swap chain images
-		static uint32_t imageCount = 0;
-		static std::vector<VkImage> imageCopies = { };
-		imageCopies.clear();
+		uint32_t imageCount = 0;
+		std::vector<VkImage> tempImages = { };
 
 		vkGetSwapchainImagesKHR(device, m_SwapChain, &imageCount, NULL);
-		m_Images.resize(imageCount);
-		imageCopies.resize(imageCount);
-		vkGetSwapchainImagesKHR(device, m_SwapChain, &imageCount, imageCopies.data());
-
-		// Copy over the images to the swapchain images
-		for (size_t i = 0; i < imageCount; i++)
-		{
-			m_Images[i].Image = imageCopies[i];
-			VulkanAllocator::TransitionImageLayout(m_Images[i].Image, m_ColourFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, 1);
-		}
+		tempImages.resize(imageCount);
+		if (m_Images.empty()) m_Images.resize((size_t)imageCount);
+		vkGetSwapchainImagesKHR(device, m_SwapChain, &imageCount, tempImages.data());
 
 		for (uint32_t i = 0; i < imageCount; i++)
 		{
+			VulkanImageData data = {};
+			data.Image = tempImages[i];
+			VulkanAllocator::TransitionImageLayout(tempImages[i], m_ColourFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, 1);
+
 			VkImageViewCreateInfo colorAttachmentView = {};
 			colorAttachmentView.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 			colorAttachmentView.pNext = NULL;
 			colorAttachmentView.format = m_ColourFormat;
-			colorAttachmentView.image = m_Images[i].Image;
+			colorAttachmentView.image = tempImages[i];
 			colorAttachmentView.components =
 			{
 				VK_COMPONENT_SWIZZLE_R,
@@ -328,16 +284,35 @@ namespace Swift
 			colorAttachmentView.viewType = VK_IMAGE_VIEW_TYPE_2D;
 			colorAttachmentView.flags = 0;
 
-			vkCreateImageView(device, &colorAttachmentView, nullptr, &m_Images[i].ImageView);
+			if (vkCreateImageView(device, &colorAttachmentView, nullptr, &data.ImageView) != VK_SUCCESS)
+				APP_LOG_FATAL("Failed to create swapchain imageviews.");
+
+			ImageSpecification specs = {};
+			specs.Usage = ImageUsage::None;
+			specs.Format = GetImageFormatFromVulkanFormat(m_ColourFormat);
+			specs.Flags = ImageUsageFlags::Colour | ImageUsageFlags::NoMipMaps;
+			specs.Width = width;
+			specs.Height = height;
+			specs.Layout = ImageLayout::Presentation;
+
+			if (!m_Images[i]) m_Images[i] = RefHelper::Create<VulkanImage2D>(specs, data);
+			else RefHelper::RefAs<VulkanImage2D>(m_Images[i])->SetImageData(specs, data);
 		}
 
-		VulkanAllocator allocator = {};
+		if (!m_DepthStencil)
+		{
+			ImageSpecification specs = {};
+			specs.Usage = ImageUsage::Size;
+			specs.Format = GetImageFormatFromVulkanFormat(VulkanAllocator::FindDepthFormat());
+			specs.Flags = ImageUsageFlags::Depth | ImageUsageFlags::NoMipMaps;
+			specs.Width = width;
+			specs.Height = height;
+			specs.Layout = ImageLayout::Depth;
 
-		VkFormat depthFormat = VulkanAllocator::FindDepthFormat();
-		m_DepthStencil.MemoryAlloc = allocator.AllocateImage(width, height, 1, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VMA_MEMORY_USAGE_GPU_ONLY, m_DepthStencil.Image);
-
-		m_DepthStencil.ImageView = allocator.CreateImageView(m_DepthStencil.Image, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
-		VulkanAllocator::TransitionImageLayout(m_DepthStencil.Image, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1);
+			m_DepthStencil = Image2D::Create(specs);
+		}
+		else
+			m_DepthStencil->Resize(width, height);
 
 		/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		// Synchronization Objects

@@ -7,6 +7,7 @@
 #include "Swift/Renderer/Renderer.hpp"
 
 #include "Swift/Vulkan/VulkanUtils.hpp"
+#include "Swift/Vulkan/VulkanImage.hpp"
 #include "Swift/Vulkan/VulkanRenderer.hpp"
 
 namespace Swift
@@ -15,6 +16,12 @@ namespace Swift
     VulkanRenderPass::VulkanRenderPass(RenderPassSpecification specs, Ref<CommandBuffer> commandBuffer)
         : m_Specification(specs), m_CommandBuffer(RefHelper::RefAs<VulkanCommandBuffer>(commandBuffer))
     {
+        if (m_Specification.ColourAttachment.empty() && !m_Specification.DepthAttachment)
+        {
+            APP_ASSERT(false, "Tried to create renderpass without a colour or depth attachment.");
+            return;
+        }
+
         Create();
     }
 
@@ -39,12 +46,12 @@ namespace Swift
         renderPassInfo.renderArea.extent = extent;
 
         std::vector<VkClearValue> clearValues = {};
-        if (m_Specification.Attachments & RenderPassAttachments::Colour)
+        if (!m_Specification.ColourAttachment.empty())
         {
             VkClearValue colourClear = {{ { m_Specification.ColourClearColour.r, m_Specification.ColourClearColour.g, m_Specification.ColourClearColour.b, m_Specification.ColourClearColour.a } }};
             clearValues.push_back(colourClear);
         }
-        if (m_Specification.Attachments & RenderPassAttachments::Depth)
+        if (m_Specification.DepthAttachment)
         {
             VkClearValue depthClear = { { { 1.0f, 0 } } };
             clearValues.push_back(depthClear);
@@ -95,15 +102,28 @@ namespace Swift
         });
         m_Framebuffers.clear();
 
-        auto imageViews = renderer->GetSwapChain()->GetImageViews();
-        m_Framebuffers.resize(imageViews.size());
-        for (size_t i = 0; i < imageViews.size(); i++)
+        m_Framebuffers.resize(renderer->GetSwapChain()->GetSwapChainImages().size());
+        for (size_t i = 0; i < m_Framebuffers.size(); i++)
         {
             std::vector<VkImageView> attachments = { };
-            if (m_Specification.Attachments & RenderPassAttachments::Colour)
-                attachments.push_back(renderer->GetSwapChain()->GetImageViews()[i]);
-            if (m_Specification.Attachments & RenderPassAttachments::Depth)
-                attachments.push_back(renderer->GetSwapChain()->GetDepthImageView());
+            if (!m_Specification.ColourAttachment.empty())
+            {
+                if (m_Specification.ColourAttachment.size() == 1)
+                {
+                    auto vkImage = RefHelper::RefAs<VulkanImage2D>(m_Specification.ColourAttachment[0]);
+                    attachments.push_back(vkImage->GetImageView());
+                }
+                else // If the size is not equal to 1 it has to be equal to the amount of swapchain images
+                {
+                    auto vkImage = RefHelper::RefAs<VulkanImage2D>(m_Specification.ColourAttachment[i]);
+                    attachments.push_back(vkImage->GetImageView());
+                }
+            }
+            if (m_Specification.DepthAttachment)
+            {
+                auto vkImage = RefHelper::RefAs<VulkanImage2D>(m_Specification.DepthAttachment);
+                attachments.push_back(vkImage->GetImageView());
+            }
 
             VkFramebufferCreateInfo framebufferInfo = {};
             framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -129,10 +149,10 @@ namespace Swift
         std::vector<VkAttachmentDescription> attachments = { };
         std::vector<VkAttachmentReference> attachmentRefs = { };
 
-        if (m_Specification.Attachments & RenderPassAttachments::Colour)
+        if (!m_Specification.ColourAttachment.empty())
         {
             VkAttachmentDescription& colorAttachment = attachments.emplace_back();
-            colorAttachment.format = renderer->GetSwapChain()->GetColourFormat();
+            colorAttachment.format = GetVulkanFormatFromImageFormat(m_Specification.ColourAttachment[0]->GetSpecification().Format);
             colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
             colorAttachment.loadOp = (VkAttachmentLoadOp)m_Specification.ColourLoadOp;
             colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -146,10 +166,10 @@ namespace Swift
             colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
         }
 
-        if (m_Specification.Attachments & RenderPassAttachments::Depth)
+        if (m_Specification.DepthAttachment)
         {
             VkAttachmentDescription& depthAttachment = attachments.emplace_back();
-            depthAttachment.format = VulkanAllocator::FindDepthFormat();
+            depthAttachment.format = GetVulkanFormatFromImageFormat(m_Specification.DepthAttachment->GetSpecification().Format);
             depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
             depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
             depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -165,7 +185,7 @@ namespace Swift
 
         VkSubpassDescription subpass = {};
         subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-        if (m_Specification.Attachments & RenderPassAttachments::Colour)
+        if (!m_Specification.ColourAttachment.empty())
         {
             subpass.colorAttachmentCount = 1;
             subpass.pColorAttachments = &attachmentRefs[0];
@@ -176,9 +196,9 @@ namespace Swift
             subpass.pColorAttachments = nullptr;
         }
 
-        if (m_Specification.Attachments & RenderPassAttachments::Depth)
+        if (m_Specification.DepthAttachment)
         {
-            if (m_Specification.Attachments & RenderPassAttachments::Colour)
+            if (!m_Specification.ColourAttachment.empty())
                 subpass.pDepthStencilAttachment = &attachmentRefs[1];
             else
                 subpass.pDepthStencilAttachment = &attachmentRefs[0];
@@ -216,15 +236,28 @@ namespace Swift
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         // Framebuffers // TODO: Framebuffer class
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        auto imageViews = renderer->GetSwapChain()->GetImageViews();
-        m_Framebuffers.resize(imageViews.size());
-        for (size_t i = 0; i < imageViews.size(); i++)
+        m_Framebuffers.resize(renderer->GetSwapChain()->GetSwapChainImages().size());
+        for (size_t i = 0; i < m_Framebuffers.size(); i++)
         {
             std::vector<VkImageView> attachments = { };
-            if (m_Specification.Attachments & RenderPassAttachments::Colour)
-                attachments.push_back(renderer->GetSwapChain()->GetImageViews()[i]);
-            if (m_Specification.Attachments & RenderPassAttachments::Depth)
-                attachments.push_back(renderer->GetSwapChain()->GetDepthImageView());
+            if (!m_Specification.ColourAttachment.empty())
+            {
+                if (m_Specification.ColourAttachment.size() == 1)
+                {
+                    auto vkImage = RefHelper::RefAs<VulkanImage2D>(m_Specification.ColourAttachment[0]);
+                    attachments.push_back(vkImage->GetImageView());
+                }
+                else // If the size is not equal to 1 it has to be equal to the amount of swapchain images
+                {
+                    auto vkImage = RefHelper::RefAs<VulkanImage2D>(m_Specification.ColourAttachment[i]);
+                    attachments.push_back(vkImage->GetImageView());
+                }
+            }
+            if (m_Specification.DepthAttachment)
+            {
+                auto vkImage = RefHelper::RefAs<VulkanImage2D>(m_Specification.DepthAttachment);
+                attachments.push_back(vkImage->GetImageView());
+            }
 
             VkFramebufferCreateInfo framebufferInfo = {};
             framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -248,7 +281,6 @@ namespace Swift
         Renderer::SubmitFree([frameBuffers, renderPass]()
         {
             auto device = ((VulkanRenderer*)Renderer::GetInstance())->GetLogicalDevice()->GetVulkanDevice();
-            vkDeviceWaitIdle(device);
 
             for (auto& framebuffer : frameBuffers)
                 vkDestroyFramebuffer(device, framebuffer, nullptr);

@@ -304,7 +304,7 @@ namespace Swift
 			ImageSpecification specs = {};
 			specs.Usage = ImageUsage::Size;
 			specs.Format = GetImageFormatFromVulkanFormat(VulkanAllocator::FindDepthFormat());
-			specs.Flags = ImageUsageFlags::Depth | ImageUsageFlags::NoMipMaps;
+			specs.Flags = ImageUsageFlags::Depth | ImageUsageFlags::Sampled /*| ImageUsageFlags::Storage*/ | ImageUsageFlags::NoMipMaps;
 			specs.Width = width;
 			specs.Height = height;
 			specs.Layout = ImageLayout::Depth;

@@ -32,7 +32,7 @@ namespace Swift
 		VulkanAllocator() = default;
 		virtual ~VulkanAllocator() = default;
 
-		VmaAllocation AllocateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage, VkBuffer& dstBuffer);
+		VmaAllocation AllocateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage, VkBuffer& dstBuffer, VkMemoryPropertyFlags requiredFlags = 0);
 		void CopyBuffer(VkBuffer& srcBuffer, VkBuffer& dstBuffer, VkDeviceSize size);
 		void DestroyBuffer(VkBuffer buffer, VmaAllocation allocation);
 

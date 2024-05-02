@@ -135,4 +135,28 @@ namespace Swift
 		}
 	}
 
+	bool VulkanTaskManager::HasFence(VkFence fence)
+	{
+		std::scoped_lock<std::mutex> lock(s_FenceMutex);
+
+		uint32_t frame = Renderer::GetCurrentFrame();
+
+		return s_Fences[frame].HasItem(fence);
+	}
+
+	void VulkanTaskManager::RemoveFence(VkFence fence)
+	{
+		std::scoped_lock<std::mutex> lock(s_FenceMutex);
+
+		uint32_t frame = Renderer::GetCurrentFrame();
+
+		if (s_Fences[frame].HasItem(fence))
+			s_Fences[frame].Remove(fence);
+		else
+		{
+			APP_ASSERT(false, "Fence by value {0} doesn't exist.", (void*)fence)
+			return;
+		}
+	}
+
 }

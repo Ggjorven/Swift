@@ -12,6 +12,8 @@
 namespace Swift
 {
 
+	// TODO: Add specifications (CPU/GPU, etc...)
+
 	class VulkanVertexBuffer : public VertexBuffer
 	{
 	public:
@@ -72,6 +74,7 @@ namespace Swift
 		void SetDataIndexed(uint32_t index, void* data, size_t size) override;
 		void UploadIndexedData() override;
 
+		inline uint32_t GetAmountOfElements() const override { return m_ElementCount; }
 		inline size_t GetAlignment() const override { return m_AlignmentOfOneElement; }
 
 		void Upload(Ref<DescriptorSet> set, Descriptor element) override;
@@ -94,7 +97,12 @@ namespace Swift
 		VulkanStorageBuffer(size_t dataSize);
 		virtual ~VulkanStorageBuffer();
 
-		void SetData(void* data, size_t size) override;
+		void SetData(void* data, size_t size, size_t offset) override;
+
+		void* StartRetrieval() override;
+		void EndRetrieval() override;
+
+		size_t GetSize() const override { return m_Size; }
 
 		void Upload(Ref<DescriptorSet> set, Descriptor element) override;
 

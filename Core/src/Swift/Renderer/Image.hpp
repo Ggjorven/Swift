@@ -31,7 +31,7 @@ namespace Swift
 
 	enum class ImageLayout : uint32_t
 	{
-		Undefined = 0, General = 1, Colour = 2, Depth = 3, ShaderRead = 5, Presentation = 1000001002, SharedPresentation = 1000111000
+		Undefined = 0, General = 1, Colour = 2, Depth = 3, DepthRead = 4, ShaderRead = 5, Presentation = 1000001002, SharedPresentation = 1000111000
 	};
 	DEFINE_BITWISE_OPS(ImageLayout)
 
@@ -55,8 +55,8 @@ namespace Swift
 
 	public:
 		ImageSpecification() = default;
-		ImageSpecification(uint32_t width, uint32_t height, ImageUsageFlags flags = ImageUsageFlags::Sampled);
-		ImageSpecification(const std::filesystem::path& path, ImageUsageFlags flags = ImageUsageFlags::Sampled);
+		ImageSpecification(uint32_t width, uint32_t height, ImageUsageFlags flags);
+		ImageSpecification(const std::filesystem::path& path, ImageUsageFlags flags = ImageUsageFlags::Sampled | ImageUsageFlags::Colour);
 		virtual ~ImageSpecification() = default;
 	};
 

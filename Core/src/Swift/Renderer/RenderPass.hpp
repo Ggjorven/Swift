@@ -15,23 +15,25 @@ namespace Swift
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Specification 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	enum class ColourLoadOperation : uint8_t
+	enum class LoadOperation : uint8_t
 	{
 		Load = 0, Clear = 1
 	};
-	DEFINE_BITWISE_OPS(ColourLoadOperation)
+	DEFINE_BITWISE_OPS(LoadOperation)
 
 	struct RenderPassSpecification
 	{
 	public:
 		std::vector<Ref<Image2D>> ColourAttachment = { };
-		ColourLoadOperation ColourLoadOp = ColourLoadOperation::Clear;
+		LoadOperation ColourLoadOp = LoadOperation::Clear;
 		glm::vec4 ColourClearColour = { 0.0f, 0.0f, 0.0f, 1.0f };
+		ImageLayout PreviousColourImageLayout = ImageLayout::Undefined;
+		ImageLayout FinalColourImageLayout = ImageLayout::Presentation;
 
 		Ref<Image2D> DepthAttachment = nullptr;
-
-		ImageLayout PreviousImageLayout = ImageLayout::Undefined;
-		ImageLayout FinalImageLayout = ImageLayout::Presentation;
+		LoadOperation DepthLoadOp = LoadOperation::Clear;
+		ImageLayout PreviousDepthImageLayout = ImageLayout::Undefined;
+		ImageLayout FinalDepthImageLayout = ImageLayout::Depth;
 	};
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

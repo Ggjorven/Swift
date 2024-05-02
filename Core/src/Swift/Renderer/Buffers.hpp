@@ -110,6 +110,7 @@ namespace Swift
 		virtual void SetDataIndexed(uint32_t index, void* data, size_t size) = 0;
 		virtual void UploadIndexedData() = 0;
 
+		virtual uint32_t GetAmountOfElements() const = 0;
 		virtual size_t GetAlignment() const = 0;
 
 		virtual void Upload(Ref<DescriptorSet> set, Descriptor element) = 0;
@@ -124,7 +125,12 @@ namespace Swift
 		StorageBuffer() = default;
 		virtual ~StorageBuffer() = default;
 
-		virtual void SetData(void* data, size_t size) = 0;
+		virtual void SetData(void* data, size_t size, size_t offset = 0) = 0;
+
+		virtual void* StartRetrieval() = 0;
+		virtual void EndRetrieval() = 0;
+
+		virtual size_t GetSize() const = 0;
 
 		virtual void Upload(Ref<DescriptorSet> set, Descriptor element) = 0;
 

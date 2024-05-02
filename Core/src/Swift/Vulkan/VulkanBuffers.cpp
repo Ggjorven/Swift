@@ -313,6 +313,7 @@ namespace Swift
 	}
 
 
+
 	VulkanStorageBuffer::VulkanStorageBuffer(size_t dataSize)
 		: m_Size(dataSize)
 	{
@@ -322,7 +323,7 @@ namespace Swift
 
 		VulkanAllocator allocator = {};
 		for (size_t i = 0; i < framesInFlight; i++)
-			m_Allocations[i] = allocator.AllocateBuffer((VkDeviceSize)dataSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU, m_Buffers[i]);
+			m_Allocations[i] = allocator.AllocateBuffer((VkDeviceSize)dataSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU, m_Buffers[i], VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_CACHED_BIT);
 	}
 
 	VulkanStorageBuffer::~VulkanStorageBuffer()
@@ -342,11 +343,11 @@ namespace Swift
 		});
 	}
 
-	void VulkanStorageBuffer::SetData(void* data, size_t size)
+	void VulkanStorageBuffer::SetData(void* data, size_t size, size_t offset)
 	{
 		APP_PROFILE_SCOPE("VulkanStorageBuffer::SetData");
 
-		if (size > m_Size)
+		if (size + offset > m_Size)
 		{
 			APP_ASSERT(false, "Data exceeds buffer size in SetData()");
 			return;
@@ -356,9 +357,22 @@ namespace Swift
 		{
 			void* mappedMemory = nullptr;
 			VulkanAllocator::MapMemory(m_Allocations[i], mappedMemory);
-			memcpy(mappedMemory, data, size);
+			memcpy(static_cast<uint8_t*>(mappedMemory) + offset, data, size);
 			VulkanAllocator::UnMapMemory(m_Allocations[i]);
 		}
+	}
+
+	void* VulkanStorageBuffer::StartRetrieval()
+	{
+		void* mappedMemory = nullptr;
+		VulkanAllocator::MapMemory(m_Allocations[Renderer::GetCurrentFrame()], mappedMemory);
+
+		return mappedMemory;
+	}
+
+	void VulkanStorageBuffer::EndRetrieval()
+	{
+		VulkanAllocator::UnMapMemory(m_Allocations[Renderer::GetCurrentFrame()]);
 	}
 
 	void VulkanStorageBuffer::Upload(Ref<DescriptorSet> set, Descriptor element)

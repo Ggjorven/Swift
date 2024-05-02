@@ -29,6 +29,9 @@ namespace Swift
 
 		static bool HasSemaphore(VkSemaphore semaphore);
 		static void RemoveSemaphore(VkSemaphore semaphore);
+
+		static bool HasFence(VkFence fence);
+		static void RemoveFence(VkFence fence);
 		
 	private:
 		static std::mutex s_SemaphoreMutex;

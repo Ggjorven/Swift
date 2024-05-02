@@ -179,4 +179,16 @@ namespace Swift
 		VulkanTaskManager::AddFence(m_InFlightFences[currentFrame]);
 	}
 
+	void VulkanCommandBuffer::WaitOnFinish()
+	{
+		auto renderer = (VulkanRenderer*)Renderer::GetInstance();
+		uint32_t currentFrame = Renderer::GetCurrentFrame();
+
+		if (VulkanTaskManager::HasFence(m_InFlightFences[currentFrame]))
+			VulkanTaskManager::RemoveFence(m_InFlightFences[currentFrame]);
+
+		vkWaitForFences(renderer->GetLogicalDevice()->GetVulkanDevice(), 1, &m_InFlightFences[currentFrame], VK_TRUE, MAX_UINT64);
+		vkResetFences(renderer->GetLogicalDevice()->GetVulkanDevice(), 1, &m_InFlightFences[currentFrame]);
+	}
+
 }

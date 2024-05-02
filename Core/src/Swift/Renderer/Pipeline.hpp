@@ -22,9 +22,9 @@ namespace Swift
 		None = 0, Front = 1, Back, FrontAndBack
 	};
 
-	enum class PolygonMode : uint8_t
+	enum class PolygonMode : uint32_t
 	{
-		None = 0, Fill = 0, Line = 1
+		None = 0x7FFFFFFF, Fill = 0, Line = 1
 	};
 
 	struct PipelineSpecification

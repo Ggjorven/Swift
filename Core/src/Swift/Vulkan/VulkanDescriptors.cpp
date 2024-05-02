@@ -202,7 +202,7 @@ namespace Swift
 			for (uint32_t j = 0; j < (uint32_t)RendererSpecification::BufferCount; j++)
 				setCombo.push_back(sets[index + j]);
 
-			m_DescriptorSets[setID][index] = RefHelper::Create<VulkanDescriptorSet>(setID, setCombo);
+			m_DescriptorSets[setID][i] = RefHelper::Create<VulkanDescriptorSet>(setID, setCombo);
 			index += (uint32_t)RendererSpecification::BufferCount;
 		}
 	}

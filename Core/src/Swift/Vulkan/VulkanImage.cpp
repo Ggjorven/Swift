@@ -83,9 +83,16 @@ namespace Swift
 
 		VulkanAllocator::TransitionImageLayout(m_Data.Image, GetVulkanFormatFromImageFormat(m_Specification.Format), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_Miplevels);
 		allocator.CopyBufferToImage(stagingBuffer, m_Data.Image, m_Specification.Width, m_Specification.Height);
-		GenerateMipmaps(m_Data.Image, GetVulkanFormatFromImageFormat(m_Specification.Format), m_Specification.Width, m_Specification.Height, m_Miplevels);
 
-		VulkanAllocator::TransitionImageLayout(m_Data.Image, GetVulkanFormatFromImageFormat(m_Specification.Format), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, (VkImageLayout)m_Specification.Layout, m_Miplevels);
+		if (m_Specification.Flags & ImageUsageFlags::NoMipMaps)
+		{
+			VulkanAllocator::TransitionImageLayout(m_Data.Image, GetVulkanFormatFromImageFormat(m_Specification.Format), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, (VkImageLayout)m_Specification.Layout, m_Miplevels);
+		}
+		else
+		{
+			GenerateMipmaps(m_Data.Image, GetVulkanFormatFromImageFormat(m_Specification.Format), m_Specification.Width, m_Specification.Height, m_Miplevels);
+			VulkanAllocator::TransitionImageLayout(m_Data.Image, GetVulkanFormatFromImageFormat(m_Specification.Format), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, (VkImageLayout)m_Specification.Layout, m_Miplevels);
+		}
 
 		allocator.DestroyBuffer(stagingBuffer, stagingBufferAllocation);
 	}
@@ -160,7 +167,7 @@ namespace Swift
 			m_Miplevels = static_cast<uint32_t>(std::floor(std::log2(std::max(width, height)))) + 1;
 
 		VulkanAllocator allocator = {};
-		m_Data.Allocation = allocator.AllocateImage(width, height, m_Miplevels, GetVulkanFormatFromImageFormat(m_Specification.Format), VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | GetVulkanImageUsageFromImageUsage(m_Specification.Flags), VMA_MEMORY_USAGE_GPU_ONLY, m_Data.Image);
+		m_Data.Allocation = allocator.AllocateImage(width, height, m_Miplevels, GetVulkanFormatFromImageFormat(m_Specification.Format), VK_IMAGE_TILING_OPTIMAL, GetVulkanImageUsageFromImageUsage(m_Specification.Flags), VMA_MEMORY_USAGE_GPU_ONLY, m_Data.Image);
 
 		m_Data.ImageView = allocator.CreateImageView(m_Data.Image, GetVulkanFormatFromImageFormat(m_Specification.Format), GetVulkanImageAspectFromImageUsage(m_Specification.Flags), m_Miplevels);
 		m_Data.Sampler = allocator.CreateSampler(m_Miplevels);

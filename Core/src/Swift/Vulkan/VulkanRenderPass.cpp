@@ -158,11 +158,11 @@ namespace Swift
             colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
             colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
             colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-            colorAttachment.initialLayout = (VkImageLayout)m_Specification.PreviousImageLayout;
-            colorAttachment.finalLayout = (VkImageLayout)m_Specification.FinalImageLayout;
+            colorAttachment.initialLayout = (VkImageLayout)m_Specification.PreviousColourImageLayout;
+            colorAttachment.finalLayout = (VkImageLayout)m_Specification.FinalColourImageLayout;
 
             VkAttachmentReference& colorAttachmentRef = attachmentRefs.emplace_back();
-            colorAttachmentRef.attachment = 0;
+            colorAttachmentRef.attachment = (uint32_t)(attachments.size() - 1);
             colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
         }
 
@@ -171,15 +171,15 @@ namespace Swift
             VkAttachmentDescription& depthAttachment = attachments.emplace_back();
             depthAttachment.format = GetVulkanFormatFromImageFormat(m_Specification.DepthAttachment->GetSpecification().Format);
             depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-            depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-            depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+            depthAttachment.loadOp = (VkAttachmentLoadOp)m_Specification.DepthLoadOp;
+            depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
             depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
             depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-            depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-            depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+            depthAttachment.initialLayout = (VkImageLayout)m_Specification.PreviousDepthImageLayout;
+            depthAttachment.finalLayout = (VkImageLayout)m_Specification.FinalDepthImageLayout;
 
             VkAttachmentReference& depthAttachmentRef = attachmentRefs.emplace_back();
-            depthAttachmentRef.attachment = 1;
+            depthAttachmentRef.attachment = (uint32_t)(attachments.size() - 1);
             depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
         }
 

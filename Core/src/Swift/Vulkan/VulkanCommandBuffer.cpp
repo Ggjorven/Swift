@@ -25,7 +25,7 @@ namespace Swift
 
 		auto renderer = (VulkanRenderer*)Renderer::GetInstance();
 		auto device = renderer->GetLogicalDevice()->GetVulkanDevice();
-		uint32_t framesInFlight = (uint32_t)RendererSpecification::BufferCount;
+		constexpr const uint32_t framesInFlight = (uint32_t)RendererSpecification::BufferCount;
 		m_CommandBuffers.resize(framesInFlight);
 
 		VkCommandBufferAllocateInfo allocInfo = {};
@@ -70,9 +70,10 @@ namespace Swift
 
 			vkDeviceWaitIdle(device);
 
-			vkFreeCommandBuffers(device, renderer->GetSwapChain()->GetCommandPool(), (uint32_t)RendererSpecification::BufferCount, commandBuffers.data());
+			constexpr const uint32_t framesInFlight = (uint32_t)RendererSpecification::BufferCount;
+			vkFreeCommandBuffers(device, renderer->GetSwapChain()->GetCommandPool(), framesInFlight, commandBuffers.data());
 
-			for (size_t i = 0; i < (size_t)RendererSpecification::BufferCount; i++)
+			for (size_t i = 0; i < (size_t)framesInFlight; i++)
 			{
 				vkDestroySemaphore(device, renderFinishedSemaphores[i], nullptr);
 				vkDestroyFence(device, inFlightFences[i], nullptr);

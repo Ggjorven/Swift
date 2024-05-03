@@ -243,6 +243,12 @@ namespace Swift
 			APP_LOG_ERROR("Failed to create compute pipeline!");
 	}
 
+	void VulkanPipeline::CreateRayTracingPipeline() // TODO: Implement
+	{
+		
+	}
+
+
 
 	VkVertexInputBindingDescription VulkanPipeline::GetBindingDescription()
 	{
@@ -279,13 +285,13 @@ namespace Swift
 		case DataType::Float2:  return VK_FORMAT_R32G32_SFLOAT;
 		case DataType::Float3:  return VK_FORMAT_R32G32B32_SFLOAT;
 		case DataType::Float4:  return VK_FORMAT_R32G32B32A32_SFLOAT;
-		case DataType::Mat3:    return VK_FORMAT_UNDEFINED;		// TODO: Implement these
-		case DataType::Mat4:    return VK_FORMAT_UNDEFINED;		// TODO: Implement these
-		case DataType::Int:     return VK_FORMAT_UNDEFINED;		// TODO: Implement these
-		case DataType::Int2:    return VK_FORMAT_UNDEFINED;		// TODO: Implement these
-		case DataType::Int3:    return VK_FORMAT_UNDEFINED;		// TODO: Implement these
-		case DataType::Int4:    return VK_FORMAT_UNDEFINED;		// TODO: Implement these
-		case DataType::Bool:    return VK_FORMAT_UNDEFINED;		// TODO: Implement these
+		case DataType::Mat3:    return VK_FORMAT_R32G32B32_SFLOAT;		// Assuming Mat3 is represented as 3 vec3s
+		case DataType::Mat4:    return VK_FORMAT_R32G32B32A32_SFLOAT;	// Assuming Mat4 is represented as 4 vec4s
+		case DataType::Int:     return VK_FORMAT_R32_SINT;			
+		case DataType::Int2:    return VK_FORMAT_R32G32_SINT;
+		case DataType::Int3:    return VK_FORMAT_R32G32B32_SINT;
+		case DataType::Int4:    return VK_FORMAT_R32G32B32A32_SINT;
+		case DataType::Bool:    return VK_FORMAT_R8_UINT;
 		}
 
 		return VK_FORMAT_UNDEFINED;

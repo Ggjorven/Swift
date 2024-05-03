@@ -42,7 +42,7 @@ namespace Swift
 		shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(code, ShaderStageToShaderCType(stage), "", options);
 
 		if (module.GetCompilationStatus() != shaderc_compilation_status_success)
-			APP_LOG_ERROR("Error compiling shader: {0}", module.GetErrorMessage());
+			APP_ASSERT(false, "Error compiling shader: {0}", module.GetErrorMessage());
 
 		// Convert SPIR-V code to vector<char>
 		const uint32_t* data = module.cbegin();

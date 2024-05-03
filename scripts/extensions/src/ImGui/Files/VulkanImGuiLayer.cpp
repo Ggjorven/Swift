@@ -47,7 +47,6 @@ namespace Swift
 			poolInfo.poolSizeCount = (uint32_t)poolSizes.size();
 			poolInfo.pPoolSizes = poolSizes.data();
 			poolInfo.maxSets = 1000 * (uint32_t)RendererSpecification::BufferCount;
-			poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
 
 			if (vkCreateDescriptorPool(context->GetLogicalDevice()->GetVulkanDevice(), &poolInfo, nullptr, &s_ImGuiPool) != VK_SUCCESS)
 				APP_LOG_ERROR("Failed to create descriptor pool!");

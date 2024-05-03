@@ -39,7 +39,7 @@ namespace Swift
 		VmaAllocation AllocateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VmaMemoryUsage memUsage, VkImage& image, VkMemoryPropertyFlags requiredFlags = {});
 		void CopyBufferToImage(VkBuffer& buffer, VkImage& image, uint32_t width, uint32_t height);
 		VkImageView CreateImageView(VkImage& image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
-		VkSampler CreateSampler(uint32_t mipLevels); // TODO: Make it usable with multiple formats/settings.
+		VkSampler CreateSampler(uint32_t mipLevels); // TODO: Make it usable with multiple settings.
 		void DestroyImage(VkImage image, VmaAllocation allocation);
 
 	public:

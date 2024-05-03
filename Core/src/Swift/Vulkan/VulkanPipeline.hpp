@@ -37,6 +37,7 @@ namespace Swift
 	private:
 		void CreateGraphicsPipeline();
 		void CreateComputePipeline();
+		void CreateRayTracingPipeline(); // TODO: Implement
 
 		VkVertexInputBindingDescription GetBindingDescription();
 		std::vector<VkVertexInputAttributeDescription> GetAttributeDescriptions();

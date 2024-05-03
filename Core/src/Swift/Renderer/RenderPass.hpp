@@ -51,6 +51,7 @@ namespace Swift
 
 		virtual void Resize(uint32_t width, uint32_t height) = 0;
 
+		virtual RenderPassSpecification& GetSpecification() = 0;
 		virtual Ref<CommandBuffer> GetCommandBuffer() = 0;
 
 		static Ref<RenderPass> Create(RenderPassSpecification specs, Ref<CommandBuffer> commandBuffer);

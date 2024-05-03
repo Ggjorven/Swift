@@ -27,6 +27,9 @@ namespace Swift
 		m_Window->SetEventCallBack(APP_BIND_EVENT_FN(Application::OnEvent));
 
 		Renderer::Init();
+
+        m_ImGuiLayer = BaseImGuiLayer::Create();
+        m_LayerStack.AddOverlay((Layer*)m_ImGuiLayer);
 	}
 
 	Application::~Application()
@@ -86,6 +89,17 @@ namespace Swift
 				}
 			}
 
+            // ImGui
+            if (!m_Minimized)
+            {
+                APP_PROFILE_SCOPE("ImGui");
+                
+                m_ImGuiLayer->Begin();
+                for (Layer* layer : m_LayerStack)
+                    layer->OnImGuiRender();
+                m_ImGuiLayer->End();
+            }
+
 			{
 				APP_PROFILE_SCOPE("Renderer::End");
 				Renderer::EndFrame();
@@ -119,6 +133,8 @@ namespace Swift
 		}
 
 		Renderer::OnResize(e.GetWidth(), e.GetHeight());
+
+        m_ImGuiLayer->Resize(e.GetWidth(), e.GetHeight());
 
 		m_Minimized = false;
 		return false;

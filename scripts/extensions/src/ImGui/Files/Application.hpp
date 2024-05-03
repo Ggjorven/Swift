@@ -5,6 +5,8 @@
 
 #include "Swift/Core/Window.hpp"
 
+#include "Swift/Utils/BaseImGuiLayer.hpp"
+
 #include <vector>
 #include <memory>
 #include <queue>
@@ -52,6 +54,8 @@ namespace Swift
 		std::unique_ptr<Window> m_Window = nullptr;
 		bool m_Running = true;
 		bool m_Minimized = false;
+
+        BaseImGuiLayer* m_ImGuiLayer = nullptr;
 
 		LayerStack m_LayerStack = {};
 

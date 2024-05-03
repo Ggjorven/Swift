@@ -18,5 +18,7 @@ def main() -> None:
     print("Finished removing Assimp.")
     print("-----------------------------")
 
+    print("\nDon't forget to reload/regenerate the project.\n")
+
 if __name__ == '__main__':
     main()

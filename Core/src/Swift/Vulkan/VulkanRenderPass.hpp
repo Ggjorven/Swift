@@ -27,7 +27,9 @@ namespace Swift
 
 		void Resize(uint32_t width, uint32_t height) override;
 
+		inline RenderPassSpecification& GetSpecification() override { return m_Specification; }
 		inline Ref<CommandBuffer> GetCommandBuffer() override { return m_CommandBuffer; }
+
 		inline VkRenderPass& GetVulkanRenderPass() { return m_RenderPass; }
 		inline std::vector<VkFramebuffer> GetFrameBuffers() { return m_Framebuffers; };
 

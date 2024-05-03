@@ -8,7 +8,7 @@
 #include <cstdlib>
 
 // Note(Jorben): Profiling leaks memory, so don't keep on during any real tests. // TODO: Fix
-#define APP_ENABLE_PROFILING 0
+#define APP_ENABLE_PROFILING 1
 #define APP_MEM_PROFILING 0
 
 #if !defined(APP_DIST) && APP_ENABLE_PROFILING

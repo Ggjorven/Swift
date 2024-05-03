@@ -1,12 +1,13 @@
 #pragma once
 
-#include "Lavender/Core/Layer.hpp"
+#include "Swift/Core/Layer.hpp"
 
-namespace Lavender
+namespace Swift
 {
 
 	class Application;
 
+	// Note(Jorben): The ImGui renderpass only loads from the previous colour attachment and doesn't clear the screen. // TODO: Fix?
 	class BaseImGuiLayer : public Layer
 	{
 	public:

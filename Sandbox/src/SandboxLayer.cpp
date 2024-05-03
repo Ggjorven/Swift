@@ -2,7 +2,6 @@
 
 #include <Swift/Core/Application.hpp>
 #include <Swift/Core/Input/Input.hpp>
-#include <Swift/Utils/Mesh.hpp>
 
 #include <Swift/Renderer/Shader.hpp>
 

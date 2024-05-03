@@ -2,8 +2,6 @@
 
 #include <Swift/Core/Layer.hpp>
 
-#include "ForwardPlus/Scene.hpp"
-
 using namespace Swift;
 
 class SandboxLayer : public Layer
@@ -17,5 +15,4 @@ public:
 	void OnEvent(Event& e);
 
 private:
-	Ref<Scene> m_Scene = nullptr;
 };

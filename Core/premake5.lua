@@ -57,6 +57,7 @@ project "Swift"
 		"%{Dependencies.Spdlog.IncludeDir}",
 		"%{Dependencies.Stb_image.IncludeDir}",
 		"%{Dependencies.Assimp.IncludeDir}",
+		"%{Dependencies.ImGui.IncludeDir}",
 		"%{Dependencies.Tracy.IncludeDir}",
 		"%{Dependencies.VMA.IncludeDir}"
 	}
@@ -141,29 +142,3 @@ project "Swift"
 		defines "APP_DIST"
 		runtime "Release"
 		optimize "Full"
-
-	-- Windows
-	filter { "system:windows", "configurations:Debug" }
-		links
-		{
-			"%{Dependencies.Assimp.Windows.LibDir}" .. "%{Dependencies.Assimp.Windows.DebugLibName}"
-		}
-
-	filter { "system:windows", "configurations:Release or configurations:Dist" }
-		links
-		{
-			"%{Dependencies.Assimp.Windows.LibDir}" .. "%{Dependencies.Assimp.Windows.LibName}"
-		}
-
-	-- Linux
-	filter { "system:linux", "configurations:Debug" }
-		links
-		{
-			"%{Dependencies.Assimp.Linux.LibDir}" .. "%{Dependencies.Assimp.Linux.DebugLibName}"
-		}
-
-	filter { "system:linux", "configurations:Release or configurations:Dist" }
-		links
-		{
-			"%{Dependencies.Assimp.Linux.LibDir}" .. "%{Dependencies.Assimp.Linux.LibName}"
-		}

@@ -50,6 +50,7 @@ Dependencies =
 		LibName = "Tracy",
 		IncludeDir = "%{wks.location}/vendor/tracy/tracy/public"
 	},
+
 	Assimp = 
 	{
 		IncludeDir = "%{wks.location}/vendor/assimp/include",
@@ -68,6 +69,10 @@ Dependencies =
 			DebugDynamicLibName = "libassimp.so.5",	-- TODO: Check this out
 			LibDir = "%{wks.location}/vendor/assimp/bin/linux/",
 		}
+	},
+	ImGui = 
+	{
+		IncludeDir = "%{wks.location}/vendor/imgui",
 	},
 
 	-- Includes
@@ -91,7 +96,7 @@ Dependencies =
 ------------------------------------------------------------------------------
 outputdir = "%{cfg.buildcfg}-" .. FirstToUpper("%{cfg.system}")
 
-workspace "SwiftRenderer"
+workspace "Swift"
 	architecture "x86_64"
 	startproject "Sandbox"
 
@@ -113,7 +118,7 @@ group "Dependencies"
 	include "vendor/vma"
 group ""
 
-group "SwiftRenderer"
+group "Swift"
 	include "Core"
 group ""
 

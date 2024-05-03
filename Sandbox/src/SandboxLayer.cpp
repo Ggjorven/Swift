@@ -8,7 +8,6 @@
 
 void SandboxLayer::OnAttach()
 {
-	m_Scene = Scene::Create();
 }
 
 void SandboxLayer::OnDetach()
@@ -31,16 +30,12 @@ void SandboxLayer::OnUpdate(float deltaTime)
 		timer = 0.0f;
 		tempFPS = 0u;
 	}
-
-	m_Scene->OnUpdate(deltaTime);
 }
 
 void SandboxLayer::OnRender()
 {
-	m_Scene->OnRender();
 }
 
 void SandboxLayer::OnEvent(Event& e)
 {
-	m_Scene->OnEvent(e);
 }

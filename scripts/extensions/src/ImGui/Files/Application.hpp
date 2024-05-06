@@ -55,7 +55,7 @@ namespace Swift
 		bool m_Running = true;
 		bool m_Minimized = false;
 
-        BaseImGuiLayer* m_ImGuiLayer = nullptr;
+		BaseImGuiLayer* m_ImGuiLayer = nullptr;
 
 		LayerStack m_LayerStack = {};
 

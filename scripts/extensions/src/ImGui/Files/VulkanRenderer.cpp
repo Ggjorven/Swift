@@ -12,6 +12,8 @@
 #include "Swift/Vulkan/VulkanTaskManager.hpp"
 #include "Swift/Vulkan/VulkanCommandBuffer.hpp"
 
+#include "Swift/Utils/BaseImGuiLayer.hpp"
+
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
@@ -199,6 +201,12 @@ namespace Swift
 		{
 			APP_PROFILE_SCOPE("RenderQueue");
 			m_RenderQueue.Execute();
+		}
+		{
+			APP_PROFILE_SCOPE("UIQueue");
+			BaseImGuiLayer::Get()->Begin();
+			m_UIQueue.Execute();
+			BaseImGuiLayer::Get()->End();
 		}
 
 		m_SwapChain->EndFrame();

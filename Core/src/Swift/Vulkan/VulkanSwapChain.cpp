@@ -35,7 +35,8 @@ namespace Swift
 
 		vkDestroyCommandPool(device, m_CommandPool, nullptr);
 
-		for (size_t i = 0; i < (size_t)RendererSpecification::BufferCount; i++)
+		constexpr const size_t framesInFlight = (size_t)RendererSpecification::BufferCount;
+		for (size_t i = 0; i < framesInFlight; i++)
 			vkDestroySemaphore(device, m_ImageAvailableSemaphores[i], nullptr);
 	}
 
@@ -81,7 +82,8 @@ namespace Swift
 			APP_LOG_ERROR("Failed to present swap chain image!");
 		}
 
-		m_CurrentFrame = (m_CurrentFrame + 1) % (uint32_t)RendererSpecification::BufferCount;
+		constexpr const uint32_t framesInFlight = (uint32_t)RendererSpecification::BufferCount;
+		m_CurrentFrame = (m_CurrentFrame + 1) % framesInFlight;
 	}
 
 	void VulkanSwapChain::OnResize(uint32_t width, uint32_t height, const bool vsync)
@@ -100,7 +102,7 @@ namespace Swift
 		/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		// Command pools
 		/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-		uint32_t framesInFlight = (uint32_t)RendererSpecification::BufferCount;
+		constexpr const uint32_t framesInFlight = (uint32_t)RendererSpecification::BufferCount;
 		if (!m_CommandPool)
 		{
 			QueueFamilyIndices queueFamilyIndices = QueueFamilyIndices::Find(m_Device->GetPhysicalDevice()->GetVulkanPhysicalDevice());

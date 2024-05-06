@@ -39,6 +39,7 @@ namespace Swift
 
 		inline void Submit(RenderFunction function) override { m_RenderQueue.Add(function); }
 		inline void SubmitFree(FreeFunction function) override { m_ResourceFreeQueue.Add(function); }
+		inline void SubmitUI(UIFunction function) override { m_UIQueue.Add(function); }
 
 		void Wait() override;
 
@@ -74,6 +75,7 @@ namespace Swift
 	private:
 		Utils::Queue<RenderFunction> m_RenderQueue = { };
 		Utils::Queue<FreeFunction> m_ResourceFreeQueue = { };
+		Utils::Queue<UIFunction> m_UIQueue = { };
 	};
 
 }

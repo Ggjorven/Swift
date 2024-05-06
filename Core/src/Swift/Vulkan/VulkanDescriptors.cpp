@@ -148,11 +148,12 @@ namespace Swift
 		poolSizes.resize(m_OriginalLayouts[setID].UniqueTypes().size());
 		poolSizes.clear(); // Note(Jorben): For some reason without this line there is a VK_SAMPLER or something in the list.
 
+		constexpr const uint32_t framesInFlight = (uint32_t)RendererSpecification::BufferCount;
 		for (auto& type : m_OriginalLayouts[setID].UniqueTypes())
 		{
 			VkDescriptorPoolSize poolSize = {};
 			poolSize.type = DescriptorTypeToVulkanDescriptorType(type);
-			poolSize.descriptorCount = m_OriginalLayouts[setID].AmountOf(type) * (uint32_t)RendererSpecification::BufferCount * amount;
+			poolSize.descriptorCount = m_OriginalLayouts[setID].AmountOf(type) * framesInFlight * amount;
 
 			poolSizes.push_back(poolSize);
 		}
@@ -161,7 +162,7 @@ namespace Swift
 		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 		poolInfo.poolSizeCount = (uint32_t)poolSizes.size();
 		poolInfo.pPoolSizes = poolSizes.data();
-		poolInfo.maxSets = (uint32_t)RendererSpecification::BufferCount * amount; // A set for every frame in flight
+		poolInfo.maxSets = framesInFlight * amount; // A set for every frame in flight
 
 		m_DescriptorPools[setID] = VK_NULL_HANDLE;
 		if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &m_DescriptorPools[setID]) != VK_SUCCESS)
@@ -172,16 +173,18 @@ namespace Swift
 	{
 		auto device = ((VulkanRenderer*)Renderer::GetInstance())->GetLogicalDevice()->GetVulkanDevice();
 
+		constexpr const uint32_t framesInFlight = (uint32_t)RendererSpecification::BufferCount;
+
 		std::vector<VkDescriptorSet> descriptorSets = { };
-		std::vector<VkDescriptorSetLayout> layouts((size_t)RendererSpecification::BufferCount * amount, m_DescriptorLayouts[setID]);
+		std::vector<VkDescriptorSetLayout> layouts((size_t)framesInFlight * amount, m_DescriptorLayouts[setID]);
 
 		VkDescriptorSetAllocateInfo allocInfo = {};
 		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 		allocInfo.descriptorPool = m_DescriptorPools[setID];
-		allocInfo.descriptorSetCount = (uint32_t)RendererSpecification::BufferCount * amount;
+		allocInfo.descriptorSetCount = framesInFlight * amount;
 		allocInfo.pSetLayouts = layouts.data();
 
-		descriptorSets.resize((size_t)RendererSpecification::BufferCount * amount);
+		descriptorSets.resize((size_t)framesInFlight * amount);
 
 		VkResult res = vkAllocateDescriptorSets(device, &allocInfo, descriptorSets.data());
 		if (res != VK_SUCCESS)
@@ -194,16 +197,18 @@ namespace Swift
 	{
 		m_DescriptorSets[setID].resize((size_t)amount);
 
+		constexpr const uint32_t framesInFlight = (uint32_t)RendererSpecification::BufferCount;
+
 		uint32_t index = 0;
 		for (uint32_t i = 0; i < amount; i++)
 		{
 			std::vector<VkDescriptorSet> setCombo = { };
 
-			for (uint32_t j = 0; j < (uint32_t)RendererSpecification::BufferCount; j++)
+			for (uint32_t j = 0; j < framesInFlight; j++)
 				setCombo.push_back(sets[index + j]);
 
 			m_DescriptorSets[setID][i] = RefHelper::Create<VulkanDescriptorSet>(setID, setCombo);
-			index += (uint32_t)RendererSpecification::BufferCount;
+			index += framesInFlight;
 		}
 	}
 

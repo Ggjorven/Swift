@@ -32,6 +32,9 @@ namespace Swift
 
 		static bool HasFence(VkFence fence);
 		static void RemoveFence(VkFence fence);
+
+		// Note(Jorben): This function should generally not be used by the user unless debugging.
+		static void Reset();
 		
 	private:
 		static std::mutex s_SemaphoreMutex;

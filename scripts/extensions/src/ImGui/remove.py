@@ -13,6 +13,16 @@ def main() -> None:
 
     sh.copy2("src/ImGui/Files/Original/Layer.hpp", "../../Core/src/Swift/Core/Layer.hpp")
     
+    sh.copy2("src/ImGui/Files/Original/RendererConfig.hpp", "../../Core/src/Swift/Renderer/RendererConfig.hpp")
+
+    sh.copy2("src/ImGui/Files/Original/Renderer.hpp", "../../Core/src/Swift/Renderer/Renderer.hpp")
+    sh.copy2("src/ImGui/Files/Original/Renderer.cpp", "../../Core/src/Swift/Renderer/Renderer.cpp")
+    
+    sh.copy2("src/ImGui/Files/Original/RenderInstance.hpp", "../../Core/src/Swift/Renderer/RenderInstance.hpp")
+
+    sh.copy2("src/ImGui/Files/Original/VulkanRenderer.hpp", "../../Core/src/Swift/Vulkan/VulkanRenderer.hpp")
+    sh.copy2("src/ImGui/Files/Original/VulkanRenderer.cpp", "../../Core/src/Swift/Vulkan/VulkanRenderer.cpp")
+    
     os.remove("../../Core/src/Swift/Utils/BaseImGuiLayer.cpp")
     os.remove("../../Core/src/Swift/Utils/BaseImGuiLayer.hpp")
 

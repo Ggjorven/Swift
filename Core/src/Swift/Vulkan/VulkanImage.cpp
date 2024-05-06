@@ -122,7 +122,8 @@ namespace Swift
 
 		auto vkSet = RefHelper::RefAs<VulkanDescriptorSet>(set);
 
-		for (size_t i = 0; i < (size_t)RendererSpecification::BufferCount; i++)
+		constexpr const size_t framesInFlight = (size_t)RendererSpecification::BufferCount;
+		for (size_t i = 0; i < framesInFlight; i++)
 		{
 			VkDescriptorImageInfo imageInfo = {};
 			imageInfo.imageLayout = (VkImageLayout)m_Specification.Layout;

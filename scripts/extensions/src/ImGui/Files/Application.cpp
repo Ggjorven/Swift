@@ -9,6 +9,7 @@
 #include "Swift/Renderer/Renderer.hpp"
 
 #include "Swift/Utils/Profiler.hpp"
+#include "Swift/Utils/BaseImGuiLayer.hpp"
 
 namespace Swift
 {
@@ -28,7 +29,7 @@ namespace Swift
 
 		Renderer::Init();
 
-        m_ImGuiLayer = BaseImGuiLayer::Create();
+		m_ImGuiLayer = BaseImGuiLayer::Create();
         m_LayerStack.AddOverlay((Layer*)m_ImGuiLayer);
 	}
 
@@ -94,10 +95,8 @@ namespace Swift
             {
                 APP_PROFILE_SCOPE("ImGui");
                 
-                m_ImGuiLayer->Begin();
                 for (Layer* layer : m_LayerStack)
                     layer->OnImGuiRender();
-                m_ImGuiLayer->End();
             }
 
 			{

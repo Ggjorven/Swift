@@ -21,6 +21,16 @@ def main() -> None:
     sh.copy2("src/ImGui/Files/VulkanImGuiLayer.cpp", "../../Core/src/Swift/Vulkan/VulkanImGuiLayer.cpp")
     sh.copy2("src/ImGui/Files/VulkanImGuiLayer.hpp", "../../Core/src/Swift/Vulkan/VulkanImGuiLayer.hpp")
 
+    sh.copy2("src/ImGui/Files/RendererConfig.hpp", "../../Core/src/Swift/Renderer/RendererConfig.hpp")
+
+    sh.copy2("src/ImGui/Files/Renderer.hpp", "../../Core/src/Swift/Renderer/Renderer.hpp")
+    sh.copy2("src/ImGui/Files/Renderer.cpp", "../../Core/src/Swift/Renderer/Renderer.cpp")
+
+    sh.copy2("src/ImGui/Files/RenderInstance.hpp", "../../Core/src/Swift/Renderer/RenderInstance.hpp")
+
+    sh.copy2("src/ImGui/Files/VulkanRenderer.hpp", "../../Core/src/Swift/Vulkan/VulkanRenderer.hpp")
+    sh.copy2("src/ImGui/Files/VulkanRenderer.cpp", "../../Core/src/Swift/Vulkan/VulkanRenderer.cpp")
+
     print("-----------------------------")
     print("Finished installing ImGui...")
     print("-----------------------------")

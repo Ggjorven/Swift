@@ -105,9 +105,9 @@ namespace Swift
 	VulkanUniformBuffer::VulkanUniformBuffer(size_t dataSize)
 		: m_Size(dataSize)
 	{
-		uint32_t framesInFlight = (uint32_t)RendererSpecification::BufferCount;
-		m_Buffers.resize((size_t)framesInFlight);
-		m_Allocations.resize((size_t)framesInFlight);
+		constexpr const size_t framesInFlight = (size_t)RendererSpecification::BufferCount;
+		m_Buffers.resize(framesInFlight);
+		m_Allocations.resize(framesInFlight);
 
 		VulkanAllocator allocator = {};
 		for (size_t i = 0; i < framesInFlight; i++)
@@ -121,7 +121,8 @@ namespace Swift
 
 		Renderer::SubmitFree([buffers, allocations]()
 		{
-			for (size_t i = 0; i < (size_t)RendererSpecification::BufferCount; i++)
+			constexpr const size_t framesInFlight = (size_t)RendererSpecification::BufferCount;
+			for (size_t i = 0; i < framesInFlight; i++)
 			{
 				VulkanAllocator allocator = {};
 
@@ -141,7 +142,8 @@ namespace Swift
 			return;
 		}
 
-		for (size_t i = 0; i < (size_t)RendererSpecification::BufferCount; i++)
+		constexpr const size_t framesInFlight = (size_t)RendererSpecification::BufferCount;
+		for (size_t i = 0; i < framesInFlight; i++)
 		{
 			void* mappedMemory = nullptr;
 			VulkanAllocator::MapMemory(m_Allocations[i], mappedMemory);
@@ -156,7 +158,8 @@ namespace Swift
 
 		auto vkSet = RefHelper::RefAs<VulkanDescriptorSet>(set);
 
-		for (size_t i = 0; i < (size_t)RendererSpecification::BufferCount; i++)
+		constexpr const size_t framesInFlight = (size_t)RendererSpecification::BufferCount;
+		for (size_t i = 0; i < framesInFlight; i++)
 		{
 			VkDescriptorBufferInfo bufferInfo = {};
 			bufferInfo.buffer = m_Buffers[i];
@@ -184,9 +187,9 @@ namespace Swift
 		size_t uboAlignment = ((VulkanRenderer*)Renderer::GetInstance())->GetPhysicalDevice()->GetProperties().limits.minUniformBufferOffsetAlignment;
 		m_AlignmentOfOneElement = (sizeOfOneElement / uboAlignment) * uboAlignment + ((sizeOfOneElement % uboAlignment) > 0 ? uboAlignment : 0);
 
-		uint32_t framesInFlight = (uint32_t)RendererSpecification::BufferCount;
-		m_Buffers.resize((size_t)framesInFlight);
-		m_Allocations.resize((size_t)framesInFlight);
+		constexpr const size_t framesInFlight = (size_t)RendererSpecification::BufferCount;
+		m_Buffers.resize(framesInFlight);
+		m_Allocations.resize(framesInFlight);
 
 		VulkanAllocator allocator = {};
 		for (size_t i = 0; i < framesInFlight; i++)
@@ -204,7 +207,8 @@ namespace Swift
 		{
 			VulkanAllocator allocator = {};
 
-			for (size_t i = 0; i < (size_t)RendererSpecification::BufferCount; i++)
+			constexpr const size_t framesInFlight = (size_t)RendererSpecification::BufferCount;
+			for (size_t i = 0; i < framesInFlight; i++)
 			{
 				if (buffers[i] != VK_NULL_HANDLE)
 					allocator.DestroyBuffer(buffers[i], allocations[i]);
@@ -222,7 +226,8 @@ namespace Swift
 			return;
 		}
 
-		for (size_t i = 0; i < (size_t)RendererSpecification::BufferCount; i++)
+		constexpr const size_t framesInFlight = (size_t)RendererSpecification::BufferCount;
+		for (size_t i = 0; i < framesInFlight; i++)
 		{
 			void* mappedMemory = nullptr;
 			VulkanAllocator::MapMemory(m_Allocations[i], mappedMemory);
@@ -240,7 +245,8 @@ namespace Swift
 	{
 		APP_PROFILE_SCOPE("VulkanDynamicUniformBuffer::UploadIndexedData");
 
-		for (size_t i = 0; i < (size_t)RendererSpecification::BufferCount; i++)
+		constexpr const size_t framesInFlight = (size_t)RendererSpecification::BufferCount;
+		for (size_t i = 0; i < framesInFlight; i++)
 		{
 			void* mappedMemory = nullptr;
 			VulkanAllocator::MapMemory(m_Allocations[i], mappedMemory);
@@ -266,7 +272,8 @@ namespace Swift
 
 		auto vkSet = RefHelper::RefAs<VulkanDescriptorSet>(set);
 
-		for (size_t i = 0; i < (size_t)RendererSpecification::BufferCount; i++)
+		constexpr const size_t framesInFlight = (size_t)RendererSpecification::BufferCount;
+		for (size_t i = 0; i < framesInFlight; i++)
 		{
 			VkDescriptorBufferInfo bufferInfo = {};
 			bufferInfo.buffer = m_Buffers[i];
@@ -292,7 +299,8 @@ namespace Swift
 
 		auto vkSet = RefHelper::RefAs<VulkanDescriptorSet>(set);
 
-		for (size_t i = 0; i < (size_t)RendererSpecification::BufferCount; i++)
+		constexpr const size_t framesInFlight = (size_t)RendererSpecification::BufferCount;
+		for (size_t i = 0; i < framesInFlight; i++)
 		{
 			VkDescriptorBufferInfo bufferInfo = {};
 			bufferInfo.buffer = m_Buffers[i];
@@ -317,9 +325,9 @@ namespace Swift
 	VulkanStorageBuffer::VulkanStorageBuffer(size_t dataSize)
 		: m_Size(dataSize)
 	{
-		uint32_t framesInFlight = (uint32_t)RendererSpecification::BufferCount;
-		m_Buffers.resize((size_t)framesInFlight);
-		m_Allocations.resize((size_t)framesInFlight);
+		constexpr const size_t framesInFlight = (size_t)RendererSpecification::BufferCount;
+		m_Buffers.resize(framesInFlight);
+		m_Allocations.resize(framesInFlight);
 
 		VulkanAllocator allocator = {};
 		for (size_t i = 0; i < framesInFlight; i++)
@@ -333,7 +341,8 @@ namespace Swift
 
 		Renderer::SubmitFree([buffers, allocations]()
 		{
-			for (size_t i = 0; i < (size_t)RendererSpecification::BufferCount; i++)
+			constexpr const size_t framesInFlight = (size_t)RendererSpecification::BufferCount;
+			for (size_t i = 0; i < framesInFlight; i++)
 			{
 				VulkanAllocator allocator = {};
 
@@ -353,7 +362,8 @@ namespace Swift
 			return;
 		}
 
-		for (size_t i = 0; i < (size_t)RendererSpecification::BufferCount; i++)
+		constexpr const size_t framesInFlight = (size_t)RendererSpecification::BufferCount;
+		for (size_t i = 0; i < framesInFlight; i++)
 		{
 			void* mappedMemory = nullptr;
 			VulkanAllocator::MapMemory(m_Allocations[i], mappedMemory);
@@ -381,7 +391,8 @@ namespace Swift
 
 		auto vkSet = RefHelper::RefAs<VulkanDescriptorSet>(set);
 
-		for (size_t i = 0; i < (size_t)RendererSpecification::BufferCount; i++)
+		constexpr const size_t framesInFlight = (size_t)RendererSpecification::BufferCount;
+		for (size_t i = 0; i < framesInFlight; i++)
 		{
 			VkDescriptorBufferInfo bufferInfo = {};
 			bufferInfo.buffer = m_Buffers[i];

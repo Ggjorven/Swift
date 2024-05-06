@@ -5,6 +5,8 @@
 
 #include <Swift/Renderer/Shader.hpp>
 
+#include <imgui.h>
+
 void SandboxLayer::OnAttach()
 {
 }
@@ -36,5 +38,9 @@ void SandboxLayer::OnRender()
 }
 
 void SandboxLayer::OnEvent(Event& e)
+{
+}
+
+void SandboxLayer::OnImGuiRender() // Function doesn't do anything if ImGui is not installed.
 {
 }
